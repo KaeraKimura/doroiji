@@ -180,7 +180,7 @@ public class InvoiceWriter {
 		
 		for (int i = 0; i < consStrArr.length; i++) {
 			//バイトの長さが2を超える＝全角なのでカウンタを1.0増やす
-			if (consStrArr[i].matches("^[ｦ-ﾟ]+$")) {
+			if (consStrArr[i].matches("^[ｦ-ﾟ]+$")) {//半角カタカナは３バイトになるので事前に判定しておく
 				strCnt += 0.5;
 			}else if(consStrArr[i].getBytes().length > 2) {
 				strCnt += 1.0;
@@ -201,7 +201,7 @@ public class InvoiceWriter {
 		
 		//右詰めになる欄は最大文字数に満たない場合アンダーバーで埋める
 		if(volColStr.isEmpty() == false) {
-			int spaceCnt = (int)((17.0 + 9.5 + 4.5 - strCnt) * 2);//半角スペースを出力する回数
+			int spaceCnt = (int)((17.0 + 9.5 + 4.5 - strCnt) * 2);//半角アンダーバーを出力する回数
 			for(int i = 0; i < spaceCnt; i++) {
 				volColStr.append("_");
 			}
