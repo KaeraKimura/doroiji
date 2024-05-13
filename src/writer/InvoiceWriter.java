@@ -19,7 +19,7 @@ public class InvoiceWriter {
 	private PrintWriter pw;
 
 	public void print(List<Invoice> invoiceList) {
-		
+
 		for (int i = 0; i < invoiceList.size(); i++) {
 			Invoice inv = invoiceList.get(i);
 			inv.addDoroiji();
@@ -69,7 +69,7 @@ public class InvoiceWriter {
 		}
 
 		this.printHeader(invoice, ++pageNum);
-		this.printDoroiji(invoice.getDoroijiTotal(), invoice.getBillingMonth());
+		this.printDoroiji(invoice);
 
 	}
 
@@ -87,10 +87,10 @@ public class InvoiceWriter {
 				consMap.put(sale.getGenbaCode(), list);
 			}
 		}
-		
+
 		ClientsManager cm = Controller.getInstance().getClientsManager();
 		//マップの要素が１つ、かつ専用請求でない場合は一括で印刷する
-		if(consMap.size() == 1 && cm.isOnly(invoice.getBillingNum()) == false) {
+		if (consMap.size() == 1 && cm.isOnly(invoice.getBillingNum()) == false) {
 			this.print(invoice);
 			return;
 		}
@@ -110,7 +110,7 @@ public class InvoiceWriter {
 			double totalVol = this.calcConsVol(sales);
 			int concreteSales = this.calcConsConcreteSales(sales);
 			//道路維持管理費の計算
-			int doroijiSales = this.calcConsDoroijiSales(sales, cm.getDoroijiValue(invoice.getBillingNum()));
+			int doroijiSales = this.calcConsDoroijiSales(sales, invoice.getDoroijiValue());
 			for (int i = 1; i <= pageCount; i++) {
 				printPageCount++;
 				//ヘッダー
@@ -120,14 +120,14 @@ public class InvoiceWriter {
 					//工事名の出力
 					if (salesPrintCount == 0 && ii == 0) {
 						//最も長い工事名を調べる
-						for(int c = 0; c < sales.size(); c++) {
-							if(consName.length() < sales.get(c).getConsName().length()) {
+						for (int c = 0; c < sales.size(); c++) {
+							if (consName.length() < sales.get(c).getConsName().length()) {
 								consName = sales.get(c).getConsName();
 							}
 						}
 						this.printConsName(consName);
 						salesPrintCount++;
-					}else if (salesPrintCount <= sales.size()) {
+					} else if (salesPrintCount <= sales.size()) {
 						this.printSale(sales.get(salesPrintCount - 1));
 						salesPrintCount++;
 					} else {
@@ -151,20 +151,19 @@ public class InvoiceWriter {
 					this.printEmptyRow();
 				}
 			}
-			
+
 			//道路維持管理
 			printPageCount++;
 			this.printHeader(invoice, printPageCount);
-			this.printDoroiji(doroijiSales, invoice.getBillingMonth(),consName);
+			this.printDoroiji(doroijiSales, invoice.getBillingMonth(), consName);
 		}
 	}
-	
 
 	public void printConsName(String consName) {
-		
+
 		//半角カッコを付け加える
 		consName = "【" + consName + "】";
-		
+
 		double strCnt = 0.0; //出力文字数用のカウンタ
 		//各欄に出力する文字列
 		StringBuilder consColStr = new StringBuilder();
@@ -177,38 +176,38 @@ public class InvoiceWriter {
 		for (int i = 0; i < arr.length; i++) {
 			consStrArr[i] = String.valueOf(arr[i]);
 		}
-		
+
 		for (int i = 0; i < consStrArr.length; i++) {
 			//バイトの長さが2を超える＝全角なのでカウンタを1.0増やす
 			if (consStrArr[i].matches("^[ｦ-ﾟ]+$")) {//半角カタカナは３バイトになるので事前に判定しておく
 				strCnt += 0.5;
-			}else if(consStrArr[i].getBytes().length > 2) {
+			} else if (consStrArr[i].getBytes().length > 2) {
 				strCnt += 1.0;
-			}else {
+			} else {
 				strCnt += 0.5; //そうでない場合は半角なので０.5増やす
 			}
 			//カウンタからどの欄に出力するかを判断
 			if (strCnt <= 17) {
 				consColStr.append(consStrArr[i]);
-			}else if (strCnt <= 17 + 9.5) {
+			} else if (strCnt <= 17 + 9.5) {
 				productColStr.append(consStrArr[i]);
-			}else if(strCnt <= 17 + 9.5 + 4.5) {
+			} else if (strCnt <= 17 + 9.5 + 4.5) {
 				volColStr.append(consStrArr[i]);
-			}else if(strCnt <= 17 + 9.5 + 4.5 + 4.5) {
+			} else if (strCnt <= 17 + 9.5 + 4.5 + 4.5) {
 				valueColStr.append(consStrArr[i]);
 			}
 		}
-		
+
 		//右詰めになる欄は最大文字数に満たない場合アンダーバーで埋める
-		if(volColStr.isEmpty() == false) {
-			int spaceCnt = (int)((17.0 + 9.5 + 4.5 - strCnt) * 2);//半角アンダーバーを出力する回数
-			for(int i = 0; i < spaceCnt; i++) {
+		if (volColStr.isEmpty() == false) {
+			int spaceCnt = (int) ((17.0 + 9.5 + 4.5 - strCnt) * 2);//半角アンダーバーを出力する回数
+			for (int i = 0; i < spaceCnt; i++) {
 				volColStr.append("_");
 			}
 		}
-		if(valueColStr.isEmpty() == false) {
-			int underBarCnt = (int)((17.0 + 9.5 + 4.5 + 4.5- strCnt) * 2);//半角スペースを出力する回数
-			for(int i = 0; i < underBarCnt; i++) {
+		if (valueColStr.isEmpty() == false) {
+			int underBarCnt = (int) ((17.0 + 9.5 + 4.5 + 4.5 - strCnt) * 2);//半角スペースを出力する回数
+			for (int i = 0; i < underBarCnt; i++) {
 				valueColStr.append("_");
 			}
 		}
@@ -223,7 +222,7 @@ public class InvoiceWriter {
 				result += Double.parseDouble(sale.getVol());
 			}
 		}
-		
+
 		result += 0.00;
 		return result;
 	}
@@ -252,7 +251,7 @@ public class InvoiceWriter {
 	private void printTotalRow(double totalVol, int concreteSales) {
 		String vol = String.valueOf(totalVol);
 		//小数点第2位に０追加
-		if(vol.length() - vol.indexOf(".") == 2) {
+		if (vol.length() - vol.indexOf(".") == 2) {
 			vol = vol + "0";
 		}
 		this.pw.print(",,,,,,【合　計】," + vol + ",,"
@@ -325,15 +324,15 @@ public class InvoiceWriter {
 		this.pw.print(comment + ",\r\n");
 	}
 
-	private void printDoroiji(int doroijiSales, int billingMonth) {
-		this.pw.print(",,,,,,道路維持管理費,,," + doroijiSales + "," + billingMonth + "月分,\r\n");
-		this.pw.print(",,,,,,【合　計】,,," + doroijiSales + ",,\r\n");
+	private void printDoroiji(Invoice inv) {
+		this.pw.print(",,,,,,道路維持管理費,,," + inv.getDoroijiTotal() + "," + inv.getBillingMonth() + "月分,\r\n");
+		this.pw.print(",,,,,,【合　計】,,," + inv.getDoroijiTotal() + ",,\r\n");
 		for (int i = 1; i <= 39; i++) {
 			this.printEmptyRow();
 		}
 		this.printEmptyRow();
 	}
-	
+
 	//現場別出力用にオーバーライド
 	private void printDoroiji(int doroijiSales, int billingMonth, String consName) {
 		this.printConsName(consName);
@@ -348,7 +347,7 @@ public class InvoiceWriter {
 	public void close() {
 		this.pw.close();
 	}
-	
+
 	private void printEmptyRow() {
 		this.pw.print(",,,,,,,,,,,\r\n");
 	}

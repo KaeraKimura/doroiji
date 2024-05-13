@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import controller.Controller;
-import model.ClientsManager;
 
 public class Invoice {
 
@@ -37,28 +36,27 @@ public class Invoice {
 	//現場別か一括か？
 	private boolean isSeparate;
 
+	private int doroijiValue;
+
 	public int getPageCount() {
 		return (int) Math.ceil((double) this.salesRow.size() / 40);
 	}
 
 	//道路維持管理費を適用前に戻す
 	public void resetDoroizi() {
-		ClientsManager clientsManager = Controller.getInstance().getClientsManager();
-		int doroijiValue = clientsManager.getDoroijiValue(this.billingNum);
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isDoroiji() == true) {
-				sale.subtractDoroiji(doroijiValue);
+				sale.subtractDoroiji(this.doroijiValue);
 			}
 		}
 	}
 
 	//道路維持管理をプラスする
 	public void addDoroiji() {
-		ClientsManager clientsManager = Controller.getInstance().getClientsManager();
-		int doroijiValue = clientsManager.getDoroijiValue(this.billingNum);
+
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isConcrete()) {
-				sale.addDoroiji(doroijiValue);
+				sale.addDoroiji(this.doroijiValue);
 			}
 		}
 	}
@@ -69,10 +67,9 @@ public class Invoice {
 
 	public int getDoroijiTotal() {
 		int result = 0;
-		int doroijiValue = Controller.getInstance().getClientsManager().getDoroijiValue(this.billingNum);
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isDoroiji() == true) {
-				result += Double.parseDouble(sale.getVol()) * doroijiValue;
+				result += Double.parseDouble(sale.getVol()) * this.doroijiValue;
 			}
 		}
 		return result;
@@ -115,6 +112,9 @@ public class Invoice {
 				sale.setGenbaCode(this.salesRow.get(i - 1).getGenbaCode());
 			}
 		}
+
+		//道路維持単価を取得
+		this.doroijiValue = Controller.getInstance().getClientsManager().getDoroijiValue(this);
 
 		//合計数量
 		this.totalVol = Double.parseDouble(list.get(list.size() - 2)[7]);
@@ -218,5 +218,9 @@ public class Invoice {
 
 	public String getOffset() {
 		return offset;
+	}
+
+	public int getDoroijiValue() {
+		return this.doroijiValue;
 	}
 }
