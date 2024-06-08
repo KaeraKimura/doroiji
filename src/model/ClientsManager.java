@@ -60,7 +60,7 @@ public class ClientsManager {
 	public boolean isOnly(int billingNum) {
 		Client c = this.clientsMap.get(billingNum);
 		if(c == null) {
-			return false;
+			return true;
 		}else {
 			return this.clientsMap.get(billingNum).isOnly();
 		}

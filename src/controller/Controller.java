@@ -74,7 +74,7 @@ public class Controller extends MouseAdapter implements ActionListener {
 		}
 		view.addInvoicePanel(invoiceList);
 		if(notPrintList.size() > 0) {
-			view.addMsg("上記は出力方法を設定してください。");
+			view.addMsg("の出力方法を設定してください。");
 			view.setNotPrint(notPrintList);
 		}
 		view.showBufferMsg();
@@ -112,6 +112,10 @@ public class Controller extends MouseAdapter implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 
 		List<Invoice> printInvoiceList = this.view.getSelectedInvoiceList();
+		if(printInvoiceList.size() == 0) {
+			this.view.showMessage("出力する内容がないです。");
+			return;
+		}
 		InvoiceWriter writer = null;
 		try {
 

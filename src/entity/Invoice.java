@@ -5,6 +5,7 @@ import java.util.List;
 
 import controller.Controller;
 import model.ClientsManager;
+import model.UnitPriceCalculator;
 
 public class Invoice {
 
@@ -36,6 +37,8 @@ public class Invoice {
 	private int billingMonth;
 	//現場別か一括か？
 	private boolean isSeparate;
+	//道路維持管理費
+	private int doroijiValue;
 
 	public int getPageCount() {
 		return (int) Math.ceil((double) this.salesRow.size() / 40);
@@ -54,11 +57,9 @@ public class Invoice {
 
 	//道路維持管理をプラスする
 	public void addDoroiji() {
-		ClientsManager clientsManager = Controller.getInstance().getClientsManager();
-		int doroijiValue = clientsManager.getDoroijiValue(this.billingNum);
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isConcrete()) {
-				sale.addDoroiji(doroijiValue);
+				sale.addDoroiji(this.doroijiValue);
 			}
 		}
 	}
@@ -69,10 +70,9 @@ public class Invoice {
 
 	public int getDoroijiTotal() {
 		int result = 0;
-		int doroijiValue = Controller.getInstance().getClientsManager().getDoroijiValue(this.billingNum);
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isDoroiji() == true) {
-				result += Double.parseDouble(sale.getVol()) * doroijiValue;
+				result += Double.parseDouble(sale.getVol()) * this.doroijiValue;
 			}
 		}
 		return result;
@@ -108,6 +108,7 @@ public class Invoice {
 				this.salesRow.add(row);
 			}
 		}
+		
 		//空積料の現場コードを入力
 		for (int i = 0; i < this.salesRow.size(); i++) {
 			SaleContent sale = this.salesRow.get(i);
@@ -117,7 +118,36 @@ public class Invoice {
 		}
 
 		//合計数量
-		this.totalVol = Double.parseDouble(list.get(list.size() - 2)[7]);
+		String volStr = list.get(list.size() - 2)[7];
+		if (volStr.equals("")){
+			this.totalVol = 0.0;
+		}else{
+			this.totalVol = Double.parseDouble(volStr);
+		}
+		
+		//道路維持管理費
+		ClientsManager clientsManager = Controller.getInstance().getClientsManager();
+		this.doroijiValue = clientsManager.getDoroijiValue(this.billingNum);
+		
+		//doroijiValue = 0 のときはclients.csvに記載のない業者なので売上の単価から道路維持管理費単価を計算
+		if(this.doroijiValue == 0) {
+			UnitPriceCalculator calculator = Controller.getInstance().getCalculator();
+			int baseValue = 0;
+			//売上の中から生コン・モルタルを見つけ、ベース単価を計算
+			for(SaleContent sale:this.salesRow) {
+				if(sale.isConcrete() == true) {
+					baseValue = calculator.getBaseValue(sale, this.billingNum);
+					break;
+				}
+			}
+			//計算したベース単価の下3桁から維持管理費を算定
+			String s = String.valueOf(baseValue).substring(2,5);
+			if(s.equals("000")|| s.equals("800")) {
+				this.doroijiValue = 1000;
+			}else {
+				this.doroijiValue = 1500;
+			}
+		}
 	}
 
 	public String getPostCode() {
@@ -218,5 +248,9 @@ public class Invoice {
 
 	public String getOffset() {
 		return offset;
+	}
+	
+	public int getDoroijiValue() {
+		return this.doroijiValue;
 	}
 }
