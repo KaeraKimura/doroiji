@@ -1,8 +1,12 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import entity.Client;
+import entity.ClosingDate;
 
 public class ClientsManager {
 
@@ -64,5 +68,30 @@ public class ClientsManager {
 		}else {
 			return this.clientsMap.get(billingNum).isOnly();
 		}
+	}
+	
+	//締め日に該当するClientインスタンスをコレクションにして返す
+	public List<Client> narrowDownByClosingDate(ClosingDate closingDate){
+		List<Client> result = new ArrayList<>();
+		
+		Client c;
+		for(int i: this.clientsMap.keySet()) {
+			c = this.clientsMap.get(i);
+			if(c.getClosingDate() == closingDate) {
+				result.add(c);
+			}
+		}
+		
+		//請求先コードの昇順で並び替え
+		result.sort(new Comparator<Client>() {
+
+			@Override
+			public int compare(Client o1, Client o2) {
+				
+				return o1.getBillingNum() - o2.getBillingNum();
+			}
+			
+		});
+		return result;
 	}
 }

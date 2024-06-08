@@ -1,19 +1,24 @@
 package entity;
 
+import java.time.LocalDate;
+
 public class Client {
 	
 	private int billingNum;
 	private String name;
+	ClosingDate closingDate;
 	private int baseValue;
 	private int doroijiValue;
 	private boolean isSeparate;
 	private boolean isOnly;
 	
 	//コンストラクタ
-	public Client(int billingNum, String name, int baseValue, int isSeparateNum, int isOnlyNum) {
+	public Client(int billingNum, String name, String closingDateStr, int baseValue, int isSeparateNum, int isOnlyNum) {
 		this.billingNum = billingNum;
 		this.name = name;
 		this.baseValue = baseValue;
+		this.closingDate = ClosingDate.getTypeByValue(closingDateStr);
+		
 		//20500か20300なら地区内なので1500。それいがいは地区外なので1000
 		if(baseValue == 20500 || baseValue == 20300) {
 			this.doroijiValue = 1500;
@@ -33,6 +38,15 @@ public class Client {
 		}else {
 			this.isOnly = false;
 		}
+	}
+	
+	//最終締め日
+	public LocalDate getBeforeClosingDate() {
+		
+	}
+	
+	public ClosingDate getClosingDate() {
+		return this.closingDate;
 	}
 	
 	public int getDoroijiValue() {

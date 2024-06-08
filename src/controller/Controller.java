@@ -1,5 +1,6 @@
 package controller;
 
+import java.awt.AWTException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -15,8 +16,10 @@ import java.util.Map;
 import javax.swing.JLabel;
 
 import entity.Client;
+import entity.ClosingDate;
 import entity.Invoice;
 import model.ClientsManager;
+import model.CsvCreater;
 import model.UnitPriceCalculator;
 import reader.CSVReader;
 import view.View;
@@ -110,26 +113,14 @@ public class Controller extends MouseAdapter implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-
-		List<Invoice> printInvoiceList = this.view.getSelectedInvoiceList();
-		if(printInvoiceList.size() == 0) {
-			this.view.showMessage("出力する内容がないです。");
-			return;
+		switch(e.getActionCommand()) {
+		case "print":
+			this.printDoroijiCsv();
+			break;
+		case "20":
+			this.createCsv(ClosingDate.D_20);
+			break;
 		}
-		InvoiceWriter writer = null;
-		try {
-
-			writer = new InvoiceWriter(CSVReader.getCurrentInvoiceCsvName());
-			writer.print(printInvoiceList);
-		} catch (IOException e1) {
-			// TODO 自動生成された catch ブロック
-			e1.printStackTrace();
-		}
-		if (writer != null) {
-			writer.close();
-		}
-		this.view.addMsg("出力が終わりました。");
-		this.view.showBufferMsg();
 	}
 
 	@Override
@@ -151,6 +142,47 @@ public class Controller extends MouseAdapter implements ActionListener {
 		case "別":
 			this.view.setAllSeparatePrint(true);
 			break;
+		}
+	}
+	
+	//
+	private void printDoroijiCsv() {
+		List<Invoice> printInvoiceList = this.view.getSelectedInvoiceList();
+		if(printInvoiceList.size() == 0) {
+			this.view.showMessage("出力する内容がないです。");
+			return;
+		}
+		InvoiceWriter writer = null;
+		try {
+
+			writer = new InvoiceWriter(CSVReader.getCurrentInvoiceCsvName());
+			writer.print(printInvoiceList);
+		} catch (IOException e1) {
+			// TODO 自動生成された catch ブロック
+			e1.printStackTrace();
+		}
+		if (writer != null) {
+			writer.close();
+		}
+		this.view.addMsg("出力が終わりました。");
+		this.view.showBufferMsg();
+	}
+	
+	//CSVを自動作成
+	private void createCsv(ClosingDate closingDate) {
+		
+		List<Client> clientList = this.clientsManager.narrowDownByClosingDate(closingDate);
+		
+		//要素ClientのbillingNumで繰り返し出力作業をする。
+		CsvCreater csvCreater;
+		try {
+			csvCreater = new CsvCreater();
+			for(Client c: clientList) {
+				csvCreater.print(c);
+			}
+			this.view.showMessage("CSV作成完了！");
+		} catch (AWTException e) {
+			this.view.showMessage(e.getMessage());
 		}
 	}
 
