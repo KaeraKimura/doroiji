@@ -21,24 +21,10 @@ public class UnitPriceCalculator {
 		this.warimashiMap = warimashiMap;
 	}
 
-	public int calcBaseValue(SaleContent sale) throws NullPointerException {
-		//スライドの判定
-		int result;
-
-		int slide = this.productMap.get(sale.getProductCode());
-		result = sale.getUnit() - this.productMap.get(sale.getProductCode());
-
-		//割増の計算
-		for (String warimashiStr : sale.getWarimashi()) {
-			result -= this.warimashiMap.get(warimashiStr);
-		}
-		return result;
-	}
-
-	public boolean isNewValue(SaleContent sale, int billingNum) {
+	public int getBaseValue(SaleContent sale, int billingNum) {
 
 		//スライドの判定
-		int baseValue;
+		int baseValue = 0;
 		try {
 			int slide = this.productMap.get(sale.getProductCode());
 			baseValue = sale.getUnit() - this.productMap.get(sale.getProductCode());
@@ -46,7 +32,7 @@ public class UnitPriceCalculator {
 			View.getInstance().addMsg("請求先C" + billingNum + " " +
 					sale.getDate() + " " +
 					sale.getConsName() + "のベース単価を算定できません。");
-			return false;
+			return 0;
 		}
 
 		//割増の計算
@@ -60,10 +46,7 @@ public class UnitPriceCalculator {
 					sale.getDate() + " " +
 					sale.getConsName() + "に変な割増があります");
 		}
-		if (this.clientsManager.getBaseValue(billingNum) == baseValue) {
-			return true;
-		}
 
-		return false;
+		return baseValue;
 	}
 }

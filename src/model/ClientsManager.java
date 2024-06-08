@@ -1,12 +1,12 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
-import controller.Controller;
 import entity.Client;
-import entity.Invoice;
-import entity.SaleContent;
-import view.View;
+import entity.ClosingDate;
 
 public class ClientsManager {
 
@@ -43,36 +43,12 @@ public class ClientsManager {
 		}
 	}
 
-	public int getDoroijiValue(Invoice inv) {
-		Client c = this.clientsMap.get(inv.getBillingNum());
+	public int getDoroijiValue(int billingNum) {
+		Client c = this.clientsMap.get(billingNum);
 		if (c == null) {
-			int baseValue = 0;
-			//適当な生コンのsaleを取得してCalcuratorに渡す
-			SaleContent concreteSale = null;
-			for (SaleContent sale : inv.getSalesRow()) {
-				if (sale.isConcrete() == true && sale.getProductCode() < 1000) {
-					concreteSale = sale;
-					break;
-				}
-			}
-			try {
-				UnitPriceCalculator up = Controller.getInstance().getCalculator();
-				baseValue = up.calcBaseValue(concreteSale);
-				//ベース単価の下三桁によって地区内か地区外かを判断する
-				String baseValueStr = String.valueOf(baseValue);
-				int last3Digits = Integer.parseInt(baseValueStr.substring(baseValueStr.length() - 3));
-				if (last3Digits == 300 || last3Digits == 500) {
-					return 1500;
-				} else {
-					return 1000;
-				}
-			} catch (NullPointerException e) {
-				//concreteSaleがnullの時は1500で戻すが、確認用メッセージを出す。
-				View.getInstance().addMsg(inv.getCmpName() + "：要確認");
-				return 1500;
-			}
+			return 0;
 		} else {
-			return this.clientsMap.get(inv.getBillingNum()).getDoroijiValue();
+			return this.clientsMap.get(billingNum).getDoroijiValue();
 		}
 	}
 
@@ -88,9 +64,34 @@ public class ClientsManager {
 	public boolean isOnly(int billingNum) {
 		Client c = this.clientsMap.get(billingNum);
 		if (c == null) {
-			return false;
+			return true;
 		} else {
 			return this.clientsMap.get(billingNum).isOnly();
 		}
+	}
+
+	//締め日に該当するClientインスタンスをコレクションにして返す
+	public List<Client> narrowDownByClosingDate(ClosingDate closingDate) {
+		List<Client> result = new ArrayList<>();
+
+		Client c;
+		for (int i : this.clientsMap.keySet()) {
+			c = this.clientsMap.get(i);
+			if (c.getClosingDate() == closingDate) {
+				result.add(c);
+			}
+		}
+
+		//請求先コードの昇順で並び替え
+		result.sort(new Comparator<Client>() {
+
+			@Override
+			public int compare(Client o1, Client o2) {
+
+				return o1.getBillingNum() - o2.getBillingNum();
+			}
+
+		});
+		return result;
 	}
 }

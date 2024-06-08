@@ -22,6 +22,10 @@ public class InvoiceWriter {
 
 		for (int i = 0; i < invoiceList.size(); i++) {
 			Invoice inv = invoiceList.get(i);
+			//			//売上がないなら出力しない
+			//			if(inv.getSalesRow().size() == 0) {
+			//				continue;
+			//			}
 			inv.addDoroiji();
 			if (inv.getIsSeparate() == true) {
 				this.consSeparatePrint(inv);
@@ -56,7 +60,7 @@ public class InvoiceWriter {
 					this.printEmptyRow();
 				} else {
 					//売上出力後であれば数量と金額を出力
-					this.printTotalRow(invoice.getTotalVol(), invoice.getConcreteSales());
+					this.printTotalRow(invoice.getTotalVol(), invoice.getConcreteSales(), false);
 				}
 			} else {
 				if (salesPrintCnt < sales.size()) {
@@ -68,8 +72,12 @@ public class InvoiceWriter {
 			}
 		}
 
-		this.printHeader(invoice, ++pageNum);
-		this.printDoroiji(invoice);
+		//道路維持管理費の合計が０なら道路維持の請求書を出さない。
+		int doroijiTotal = invoice.getDoroijiTotal();
+		if (doroijiTotal != 0) {
+			this.printHeader(invoice, ++pageNum);
+			this.printDoroiji(doroijiTotal, invoice.getBillingMonth());
+		}
 
 	}
 
@@ -104,7 +112,7 @@ public class InvoiceWriter {
 			int pageCount = (int) Math.ceil(sales.size() / 40.0);
 			//売上行出力のカウンタ
 			int salesPrintCount = 0;
-			//出力す工事名
+			//出力する工事名
 			String consName = "";
 			//事前に数量と金額を取得
 			double totalVol = this.calcConsVol(sales);
@@ -116,7 +124,7 @@ public class InvoiceWriter {
 				//ヘッダー
 				this.printHeader(invoice, printPageCount);
 				//売上行
-				for (int ii = 0; ii < 40; ii++) {
+				for (int ii = 0; ii < 41; ii++) {
 					//工事名の出力
 					if (salesPrintCount == 0 && ii == 0) {
 						//最も長い工事名を調べる
@@ -126,19 +134,15 @@ public class InvoiceWriter {
 							}
 						}
 						this.printConsName(consName);
-						salesPrintCount++;
 					} else if (salesPrintCount <= sales.size()) {
 						this.printSale(sales.get(salesPrintCount - 1));
-						salesPrintCount++;
+					} else if (salesPrintCount == sales.size() + 1) {
+						//合計行の出力
+						this.printTotalRow(totalVol, concreteSales, true);
 					} else {
 						this.printEmptyRow();
 					}
-				}
-				//合計行出力
-				if (i == pageCount) {
-					this.printTotalRow(totalVol, concreteSales);
-				} else {
-					this.printEmptyRow();
+					salesPrintCount++;
 				}
 				//金額出力
 				if (pageCount == 1) {
@@ -153,9 +157,11 @@ public class InvoiceWriter {
 			}
 
 			//道路維持管理
-			printPageCount++;
-			this.printHeader(invoice, printPageCount);
-			this.printDoroiji(doroijiSales, invoice.getBillingMonth(), consName);
+			if (doroijiSales != 0) {
+				printPageCount++;
+				this.printHeader(invoice, printPageCount);
+				this.printDoroiji(doroijiSales, invoice.getBillingMonth(), consName);
+			}
 		}
 	}
 
@@ -248,13 +254,19 @@ public class InvoiceWriter {
 		return result;
 	}
 
-	private void printTotalRow(double totalVol, int concreteSales) {
+	private void printTotalRow(double totalVol, int concreteSales, boolean isSeparate) {
 		String vol = String.valueOf(totalVol);
 		//小数点第2位に０追加
 		if (vol.length() - vol.indexOf(".") == 2) {
 			vol = vol + "0";
 		}
-		this.pw.print(",,,,,,【合　計】," + vol + ",,"
+		String volTitle;
+		if (isSeparate == true) {
+			volTitle = "現場計";
+		} else {
+			volTitle = "合　計";
+		}
+		this.pw.print(",,,,,,【" + volTitle + "】," + vol + ",,"
 				+ concreteSales + ",\r\n");
 	}
 
@@ -324,9 +336,9 @@ public class InvoiceWriter {
 		this.pw.print(comment + ",\r\n");
 	}
 
-	private void printDoroiji(Invoice inv) {
-		this.pw.print(",,,,,,道路維持管理費,,," + inv.getDoroijiTotal() + "," + inv.getBillingMonth() + "月分,\r\n");
-		this.pw.print(",,,,,,【合　計】,,," + inv.getDoroijiTotal() + ",,\r\n");
+	private void printDoroiji(int doroijiSales, int billingMonth) {
+		this.pw.print(",,,,,,道路維持管理費,,," + doroijiSales + "," + billingMonth + "月分,\r\n");
+		this.pw.print(",,,,,,【現場計】,,," + doroijiSales + ",,\r\n");
 		for (int i = 1; i <= 39; i++) {
 			this.printEmptyRow();
 		}
@@ -337,7 +349,7 @@ public class InvoiceWriter {
 	private void printDoroiji(int doroijiSales, int billingMonth, String consName) {
 		this.printConsName(consName);
 		this.pw.print(",,,,,,道路維持管理費,,," + doroijiSales + "," + billingMonth + "月分,\r\n");
-		this.pw.print(",,,,,,【合　計】,,," + doroijiSales + ",,\r\n");
+		this.pw.print(",,,,,,【現場計】,,," + doroijiSales + ",,\r\n");
 		for (int i = 1; i <= 38; i++) {
 			this.printEmptyRow();
 		}

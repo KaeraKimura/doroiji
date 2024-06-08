@@ -19,6 +19,7 @@ import javax.swing.border.EtchedBorder;
 
 import controller.Controller;
 import controller.FileTransferHandler;
+import entity.ClosingDate;
 import entity.Invoice;
 
 public class View {
@@ -160,10 +161,18 @@ public class View {
 		FooterPanel() {
 			this.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
 			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-
+			
+			//CSV出力ボタン
 			JButton printBtn = new JButton("CSV出力");
-			printBtn.addActionListener(Controller.getInstance());
+			printBtn.setActionCommand("print");
+			printBtn.addActionListener(controller);
 			this.add(printBtn);
+			
+			//CSV作成ボタン
+			JButton D20Btn = new JButton(ClosingDate.D_20.toString());
+			D20Btn.setActionCommand(ClosingDate.D_20.toString());
+			D20Btn.addActionListener(controller);
+			this.add(D20Btn);
 		}
 	}
 
