@@ -1,12 +1,13 @@
 package model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 import entity.Client;
-import entity.ClosingDate;
+import entity.ClosingDay;
 
 public class ClientsManager {
 
@@ -70,8 +71,34 @@ public class ClientsManager {
 		}
 	}
 
+	//締め日
+	public LocalDate getLatestClosingDate(ClosingDay closingDate) {
+
+		if (closingDate != ClosingDay.D_LAST) {
+			int closingDayNum = Integer.parseInt(closingDate.toString());
+			//現在から遡って最短で日数が一致する日を調べる
+			long currentEpoch = LocalDate.now().toEpochDay();
+			for (long c = currentEpoch;; c--) {
+				if (LocalDate.ofEpochDay(c).getDayOfMonth() == closingDayNum) {
+					return LocalDate.ofEpochDay(c);
+				}
+			}
+		} else {
+			//末の場合
+			//現在＋１日から遡って月数が変わる日付を調べる
+			long tommorowEpoch = LocalDate.now().toEpochDay() + 1;
+			int targetMonth = LocalDate.ofEpochDay(tommorowEpoch).getMonthValue();
+			for (long c = tommorowEpoch;; c--) {
+				if (targetMonth != LocalDate.ofEpochDay(c).getMonthValue()) {
+					return LocalDate.ofEpochDay(c);
+				}
+			}
+		}
+
+	}
+
 	//締め日に該当するClientインスタンスをコレクションにして返す
-	public List<Client> narrowDownByClosingDate(ClosingDate closingDate) {
+	public List<Client> narrowDownByClosingDate(ClosingDay closingDate) {
 		List<Client> result = new ArrayList<>();
 
 		Client c;

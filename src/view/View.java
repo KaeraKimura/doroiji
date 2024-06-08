@@ -19,7 +19,7 @@ import javax.swing.border.EtchedBorder;
 
 import controller.Controller;
 import controller.FileTransferHandler;
-import entity.ClosingDate;
+import entity.ClosingDay;
 import entity.Invoice;
 
 public class View {
@@ -169,8 +169,8 @@ public class View {
 			this.add(printBtn);
 			
 			//CSV作成ボタン
-			JButton D20Btn = new JButton(ClosingDate.D_20.toString());
-			D20Btn.setActionCommand(ClosingDate.D_20.toString());
+			JButton D20Btn = new JButton(ClosingDay.D_20.toString());
+			D20Btn.setActionCommand(ClosingDay.D_20.toString());
 			D20Btn.addActionListener(controller);
 			this.add(D20Btn);
 		}

@@ -1,6 +1,6 @@
 package entity;
 
-public enum ClosingDate {
+public enum ClosingDay {
 	D_5("5"),
 	D_10("10"),
 	D_15("15"),
@@ -10,13 +10,13 @@ public enum ClosingDate {
 	
 	private String dateStr;
 	
-	private ClosingDate(String dateStr) {
+	private ClosingDay(String dateStr) {
 		this.dateStr = dateStr;
 	}
 	
 	
-	public static ClosingDate getTypeByValue(String dateStr) {
-		for(ClosingDate c: ClosingDate.values()) {
+	public static ClosingDay getTypeByValue(String dateStr) {
+		for(ClosingDay c: ClosingDay.values()) {
 			if(c.dateStr.equals(dateStr)) {
 				return c;
 			}
