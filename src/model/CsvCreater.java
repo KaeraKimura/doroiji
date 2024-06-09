@@ -1,6 +1,7 @@
 package model;
 
 import java.awt.AWTException;
+import java.awt.MouseInfo;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -142,5 +143,13 @@ public class CsvCreater extends Robot {
 		this.mouseMove(925, 470);
 		this.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		this.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	}
+
+	//マウス座標の確認
+	private boolean validateMousePosition(int x, int y) {
+		//今の座標
+		int currentX = MouseInfo.getPointerInfo().getLocation().x;
+		int currentY = MouseInfo.getPointerInfo().getLocation().y;
+
 	}
 }

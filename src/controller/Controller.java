@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -25,11 +26,12 @@ import reader.CSVReader;
 import view.View;
 import writer.InvoiceWriter;
 
-public class Controller extends MouseAdapter implements ActionListener {
+public class Controller extends MouseAdapter implements ActionListener, MouseMotionListener {
 
 	private View view;
 	private UnitPriceCalculator calculator;
 	private ClientsManager clientsManager;
+	private boolean robotStopFlag = false;
 	private static Controller singleton = new Controller();
 
 	//コンストラクタ
@@ -117,8 +119,17 @@ public class Controller extends MouseAdapter implements ActionListener {
 		case "print":
 			this.printDoroijiCsv();
 			break;
+		case "10":
+			this.createCsv(ClosingDay.D_10);
+			break;
+		case "15":
+			this.createCsv(ClosingDay.D_15);
+			break;
 		case "20":
 			this.createCsv(ClosingDay.D_20);
+			break;
+		case "末":
+			this.createCsv(ClosingDay.D_LAST);
 			break;
 		}
 	}
@@ -171,6 +182,16 @@ public class Controller extends MouseAdapter implements ActionListener {
 	//CSVを自動作成
 	private void createCsv(ClosingDay closingDate) {
 
+		//確認
+		if (this.view.showConfirm(closingDate.toString() + "日締の請求書でOK？") != 0) {
+			return;
+		}
+		//注意
+		this.view.addMsg("個別発行を画面左上にピッタリ配置して。");
+		this.view.addMsg("自動操作中はマウス・キーボードは触れません。");
+		this.view.addMsg("中断するときは");
+		this.view.showBufferMsg();
+
 		List<Client> clientList = this.clientsManager.narrowDownByClosingDate(closingDate);
 
 		//要素ClientのbillingNumで繰り返し出力作業をする。
@@ -178,12 +199,24 @@ public class Controller extends MouseAdapter implements ActionListener {
 		try {
 			csvCreater = new CsvCreater(this.clientsManager.getLatestClosingDate(closingDate));
 			for (Client c : clientList) {
+				if (this.robotStopFlag == true) {
+					this.view.addMsg("CSV作成を中断します。");
+					this.view.addMsg(c.getBillingNum() + ":まで作成しました。");
+					this.view.showBufferMsg();
+					this.robotStopFlag = false;
+					return;
+				}
 				csvCreater.print(c.getBillingNum());
 			}
 			this.view.showMessage("CSV作成完了！");
 		} catch (AWTException e) {
 			this.view.showMessage(e.getMessage());
 		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		this.robotStopFlag = true;
 	}
 
 	//	@Override

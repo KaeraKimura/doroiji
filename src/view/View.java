@@ -3,6 +3,7 @@ package view;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,9 @@ public class View {
 		this.frame.setSize(600, 600);
 		this.frame.setLocationRelativeTo(null);
 		this.frame.getContentPane().setBackground(color);
+
+		this.frame.addMouseMotionListener(this.controller);
+
 		frame.setResizable(false);
 
 		this.frame.add(new HeaderPanel());
@@ -90,10 +94,10 @@ public class View {
 			panel.setIsSeparatePrint(boo);
 		}
 	}
-	
+
 	public void setNotPrint(List notPrintList) {
-		for(InvoicePanel panel: this.listPanel.getPanels()) {
-			if(notPrintList.contains(panel.getInvoice().getBillingNum())) {
+		for (InvoicePanel panel : this.listPanel.getPanels()) {
+			if (notPrintList.contains(panel.getInvoice().getBillingNum())) {
 				panel.setIsPrint(false);
 			}
 		}
@@ -122,6 +126,10 @@ public class View {
 		JOptionPane.showMessageDialog(this.frame, msg);
 	}
 
+	public int showConfirm(String msg) {
+		return JOptionPane.showConfirmDialog(this.frame, msg);
+	}
+
 	class HeaderPanel extends JPanel {
 		HeaderPanel() {
 			//			this.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
@@ -129,13 +137,13 @@ public class View {
 			this.setBackground(color);
 			//請求先名ラベル
 			JLabel nameLabel = new JLabel("請求先名");
-			nameLabel.setFont(new Font(View.getFontname(), Font.PLAIN, 18));
+			nameLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 			nameLabel.setMaximumSize(new Dimension(260, 20));
 			nameLabel.setHorizontalAlignment(JLabel.CENTER);
 			this.add(nameLabel);
 			//出力選択ラベル
 			JLabel printLabel = new JLabel("出力");
-			printLabel.setFont(new Font(View.getFontname(), Font.PLAIN, 18));
+			printLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 			printLabel.setMaximumSize(new Dimension(80, 50));
 			printLabel.setHorizontalAlignment(JLabel.CENTER);
 			printLabel.addMouseListener(Controller.getInstance());
@@ -143,13 +151,13 @@ public class View {
 			this.add(printLabel);
 			//一括か現場別化の選択
 			JLabel radioLabel = new JLabel("一括");
-			radioLabel.setFont(new Font(View.getFontname(), Font.PLAIN, 18));
+			radioLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 			radioLabel.setMaximumSize(new Dimension(80, 20));
 			radioLabel.setHorizontalAlignment(JLabel.CENTER);
 			radioLabel.addMouseListener(Controller.getInstance());
 			this.add(radioLabel);
 			radioLabel = new JLabel("別");
-			radioLabel.setFont(new Font(View.getFontname(), Font.PLAIN, 18));
+			radioLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 			radioLabel.setMaximumSize(new Dimension(80, 20));
 			radioLabel.setHorizontalAlignment(JLabel.CENTER);
 			radioLabel.addMouseListener(Controller.getInstance());
@@ -161,18 +169,23 @@ public class View {
 		FooterPanel() {
 			this.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
 			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			
+
 			//CSV出力ボタン
-			JButton printBtn = new JButton("CSV出力");
-			printBtn.setActionCommand("print");
-			printBtn.addActionListener(controller);
-			this.add(printBtn);
-			
-			//CSV作成ボタン
-			JButton D20Btn = new JButton(ClosingDay.D_20.toString());
-			D20Btn.setActionCommand(ClosingDay.D_20.toString());
-			D20Btn.addActionListener(controller);
-			this.add(D20Btn);
+			this.addButton("CSV出力", controller);
+
+			this.addButton(ClosingDay.D_10.toString(), controller);
+			this.addButton(ClosingDay.D_15.toString(), controller);
+			this.addButton(ClosingDay.D_20.toString(), controller);
+			this.addButton(ClosingDay.D_LAST.toString(), controller);
+		}
+
+		private void addButton(String caption, ActionListener listener) {
+			JButton btn = new JButton(caption);
+			btn.setFont(new Font(getFontName(), Font.BOLD, 16));
+			btn.setActionCommand(caption);
+			btn.addActionListener(listener);
+			btn.setMaximumSize(new Dimension(100, 60));
+			this.add(btn);
 		}
 	}
 
@@ -206,7 +219,7 @@ public class View {
 		}
 	}
 
-	public static String getFontname() {
+	public static String getFontName() {
 		return "Meiryo UI";
 	}
 }
