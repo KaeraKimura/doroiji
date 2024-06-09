@@ -199,13 +199,6 @@ public class Controller extends MouseAdapter implements ActionListener, MouseMot
 		try {
 			csvCreater = new CsvCreater(this.clientsManager.getLatestClosingDate(closingDate));
 			for (Client c : clientList) {
-				if (this.robotStopFlag == true) {
-					this.view.addMsg("CSV作成を中断します。");
-					this.view.addMsg(c.getBillingNum() + ":まで作成しました。");
-					this.view.showBufferMsg();
-					this.robotStopFlag = false;
-					return;
-				}
 				csvCreater.print(c.getBillingNum());
 			}
 			this.view.showMessage("CSV作成完了！");
