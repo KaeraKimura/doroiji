@@ -129,6 +129,10 @@ public class View {
 	public int showConfirm(String msg) {
 		return JOptionPane.showConfirmDialog(this.frame, msg);
 	}
+	
+	public String showInputDialog(String msg) {
+		return JOptionPane.showInputDialog(msg);
+	}
 
 	class HeaderPanel extends JPanel {
 		HeaderPanel() {

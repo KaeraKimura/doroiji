@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -26,12 +25,13 @@ import reader.CSVReader;
 import view.View;
 import writer.InvoiceWriter;
 
-public class Controller extends MouseAdapter implements ActionListener, MouseMotionListener {
+public class Controller extends MouseAdapter implements ActionListener {
 
 	private View view;
 	private UnitPriceCalculator calculator;
 	private ClientsManager clientsManager;
-	private boolean robotStopFlag = false;
+	private CsvCreater csvCreater;
+	
 	private static Controller singleton = new Controller();
 
 	//コンストラクタ
@@ -116,7 +116,7 @@ public class Controller extends MouseAdapter implements ActionListener, MouseMot
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
-		case "print":
+		case "CSV出力":
 			this.printDoroijiCsv();
 			break;
 		case "10":
@@ -183,19 +183,20 @@ public class Controller extends MouseAdapter implements ActionListener, MouseMot
 	private void createCsv(ClosingDay closingDate) {
 
 		//確認
-		if (this.view.showConfirm(closingDate.toString() + "日締の請求書でOK？") != 0) {
+		if (this.view.showInputDialog(closingDate.toString() + "日締の請求書でOK？") != 0) {
 			return;
 		}
+		
 		//注意
-		this.view.addMsg("個別発行を画面左上にピッタリ配置して。");
+		this.view.addMsg("個別発行を画面左上にピッタリ配置して、");
+		this.view.addMsg("新規ボタンをクリックした状態でOKボタンを押してください。");
 		this.view.addMsg("自動操作中はマウス・キーボードは触れません。");
-		this.view.addMsg("中断するときは");
+		this.view.addMsg("中断するときは少しの間マウスを動かしてください。");
 		this.view.showBufferMsg();
 
 		List<Client> clientList = this.clientsManager.narrowDownByClosingDate(closingDate);
 
 		//要素ClientのbillingNumで繰り返し出力作業をする。
-		CsvCreater csvCreater;
 		try {
 			csvCreater = new CsvCreater(this.clientsManager.getLatestClosingDate(closingDate));
 			for (Client c : clientList) {
@@ -204,12 +205,13 @@ public class Controller extends MouseAdapter implements ActionListener, MouseMot
 			this.view.showMessage("CSV作成完了！");
 		} catch (AWTException e) {
 			this.view.showMessage(e.getMessage());
+		}catch(CsvCreater.UnspecifidePositionException e) {
+			//CsvCreaterでマウスのクリックまえに指定座標から動いていると例外を投げる
+			this.view.addMsg("自動操作を終了します。");
+			//どこまで出力できているかを表示させる。
+			this.view.addMsg(e.getCompletedBillingNum() + " まで完了しています。");
+			this.view.showBufferMsg();
 		}
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		this.robotStopFlag = true;
 	}
 
 	//	@Override

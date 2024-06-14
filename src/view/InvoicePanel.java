@@ -37,7 +37,7 @@ public class InvoicePanel extends JPanel {
 
 		//ラベル
 		JLabel nameLabel = new JLabel(invoice.getShapeCmpName());
-		nameLabel.setFont(new Font(View.getFontname(), Font.BOLD, 18));
+		nameLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 		nameLabel.setMaximumSize(new Dimension(260, 50));
 		nameLabel.setBackground(color);
 		nameLabel.setPreferredSize(nameLabel.getMaximumSize());
