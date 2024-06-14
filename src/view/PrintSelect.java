@@ -1,5 +1,6 @@
 package view;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.List;
@@ -32,7 +33,7 @@ public class PrintSelect extends JFrame {
 		SpringLayout layout = new SpringLayout();
 		panel.setLayout(layout);
 
-		JLabel label = new JLabel("<html>CSVを作成する請求先Cを<br>指定してください。</html>");
+		JLabel label = new JLabel("<html>CSVを作成する請求先Cを指定してください。</html>");
 		label.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 		layout.putConstraint(SpringLayout.NORTH, label, 20, SpringLayout.NORTH, panel);
 		layout.putConstraint(SpringLayout.WEST, label, 20, SpringLayout.WEST, panel);
@@ -58,7 +59,7 @@ public class PrintSelect extends JFrame {
 		JScrollPane scr = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scr.setViewportView(clientsListPanel);
-		scr.setPreferredSize(new Dimension(200, 500));
+		scr.setMaximumSize(new Dimension(250, 400));
 		layout.putConstraint(SpringLayout.WEST, scr, 10, SpringLayout.EAST, startNumLabel);
 		layout.putConstraint(SpringLayout.NORTH, scr, 10, SpringLayout.SOUTH, label);
 		for (int i = 0; i < clientList.size(); i++) {
@@ -72,20 +73,20 @@ public class PrintSelect extends JFrame {
 
 		//決定ボタン
 		this.rangeDecideButton = new JButton("決定");
-		this.rangeDecideButton.setPreferredSize(new Dimension(150, 40));
+		this.rangeDecideButton.setPreferredSize(new Dimension(100, 40));
 		this.rangeDecideButton.setFont(new Font(View.getFontName(), Font.BOLD, 20));
 		this.rangeDecideButton.setActionCommand("createRangeDecide");
 		this.rangeDecideButton.addActionListener(Controller.getInstance());
-		layout.putConstraint(SpringLayout.NORTH, this.rangeDecideButton, 20, SpringLayout.SOUTH, clientsListPanel);
+		layout.putConstraint(SpringLayout.NORTH, this.rangeDecideButton, 20, SpringLayout.SOUTH, endNumLabel);
 		layout.putConstraint(SpringLayout.WEST, this.rangeDecideButton, 20, SpringLayout.WEST, panel);
 		//キャンセルボタン
 		this.cancelButton = new JButton("キャンセル");
-		this.cancelButton.setPreferredSize(new Dimension(150, 40));
+		this.cancelButton.setPreferredSize(new Dimension(100, 40));
 		this.cancelButton.setFont(new Font(View.getFontName(), Font.BOLD, 12));
 		this.rangeDecideButton.setActionCommand("createRangeDecideCancel");
 		this.cancelButton.addActionListener(Controller.getInstance());
-		layout.putConstraint(SpringLayout.NORTH, this.cancelButton, 20, SpringLayout.SOUTH, clientsListPanel);
-		layout.putConstraint(SpringLayout.WEST, this.cancelButton, 20, SpringLayout.EAST, this.rangeDecideButton);
+		layout.putConstraint(SpringLayout.NORTH, this.cancelButton, 20, SpringLayout.SOUTH, this.rangeDecideButton);
+		layout.putConstraint(SpringLayout.WEST, this.cancelButton, 20, SpringLayout.WEST, panel);
 
 		panel.add(label);
 		panel.add(startNumLabel);
@@ -95,14 +96,6 @@ public class PrintSelect extends JFrame {
 		panel.add(this.cancelButton);
 		this.add(panel);
 		this.setVisible(true);
-	}
-
-	//TextField生成
-	private JTextField createTextField() {
-		JTextField t = new JTextField();
-		t.setFont(new Font(View.getFontName(), Font.BOLD, 18));
-		t.setPreferredSize(new Dimension(100, 30));
-		return t;
 	}
 
 	private JLabel createLabel(String str) {
@@ -115,6 +108,8 @@ public class PrintSelect extends JFrame {
 	private JLabel createClientLabel(Client client) {
 		String billingNumStr = String.format("%05d", client.getBillingNum());
 		JLabel label = new JLabel(billingNumStr + " " + client.getName());
+		label.setMaximumSize(new Dimension(400, 20));
+		label.setBackground(Color.cyan);
 		return label;
 	}
 }
