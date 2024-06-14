@@ -6,7 +6,6 @@ import java.awt.Font;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -72,8 +71,6 @@ public class InvoicePanel extends JPanel {
 		this.btnGroup = new ButtonGroup();
 		this.btnGroup.add(bunchRadio);
 		this.btnGroup.add(separateRadio);
-		
-		this.setIsSeparatePrint(invoice.getIsSeparate());
 
 	}
 
@@ -83,22 +80,6 @@ public class InvoicePanel extends JPanel {
 
 	void setIsPrint(boolean boo) {
 		this.checkBox.setSelected(boo);
-	}
-
-	boolean isSeparatePrint() {
-		ButtonModel radio = this.btnGroup.getSelection();
-		if (radio.getActionCommand().equals("separate")) {
-			return true;
-		}
-		return false;
-	}
-
-	void setIsSeparatePrint(boolean boo) {
-		if (boo == true) {
-			this.separateRadio.setSelected(true);
-		} else {
-			this.bunchRadio.setSelected(true);
-		}
 	}
 
 	Invoice getInvoice() {

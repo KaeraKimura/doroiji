@@ -35,8 +35,6 @@ public class Invoice {
 	private double totalVol;
 	//請求月
 	private int billingMonth;
-	//現場別か一括か？
-	private boolean isSeparate;
 	//道路維持管理費
 	private int doroijiValue;
 
@@ -80,8 +78,6 @@ public class Invoice {
 	//コンストラクタ
 	public Invoice(List<String[]> list) {
 
-		//デフォルトで一括
-		this.isSeparate = false;
 		//業者情報
 		String[] header = list.get(0);
 		this.postCode = header[0];
@@ -179,14 +175,6 @@ public class Invoice {
 
 		return result;
 
-	}
-
-	public void setIsSeparate(boolean boo) {
-		this.isSeparate = boo;
-	}
-
-	public boolean getIsSeparate() {
-		return this.isSeparate;
 	}
 
 	public int getBillingNum() {

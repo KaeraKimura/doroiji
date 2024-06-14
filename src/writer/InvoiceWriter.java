@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import controller.Controller;
+import entity.Client;
 import entity.Invoice;
 import entity.SaleContent;
 import model.ClientsManager;
@@ -20,17 +21,21 @@ public class InvoiceWriter {
 
 	public void print(List<Invoice> invoiceList) {
 
+		ClientsManager cm = Controller.getInstance().getClientsManager();
+		int billingMethod = 0;
 		for (int i = 0; i < invoiceList.size(); i++) {
 			Invoice inv = invoiceList.get(i);
-			//			//売上がないなら出力しない
-			//			if(inv.getSalesRow().size() == 0) {
-			//				continue;
-			//			}
+			//売上がないなら出力しない
+			if (inv.getSalesRow().size() == 0) {
+				continue;
+			}
 			inv.addDoroiji();
-			if (inv.getIsSeparate() == true) {
-				this.consSeparatePrint(inv);
-			} else {
+			//請求方法によって出力方法を変える
+			billingMethod = cm.getBillingMethod(inv.getBillingNum());
+			if (billingMethod != Client.NOMAL_BILLING) {
 				this.print(inv);
+			} else {
+				this.consSeparatePrint(inv);
 			}
 			inv.resetDoroizi();
 		}
@@ -98,7 +103,8 @@ public class InvoiceWriter {
 
 		ClientsManager cm = Controller.getInstance().getClientsManager();
 		//マップの要素が１つ、かつ専用請求でない場合は一括で印刷する
-		if (consMap.size() == 1 && cm.isOnly(invoice.getBillingNum()) == false) {
+		if (consMap.size() == 1 &&
+				cm.getBillingMethod(invoice.getBillingNum()) == Client.DEDICATED_BILLING) {
 			this.print(invoice);
 			return;
 		}

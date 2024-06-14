@@ -22,6 +22,7 @@ import model.ClientsManager;
 import model.CsvCreater;
 import model.UnitPriceCalculator;
 import reader.CSVReader;
+import view.PrintSelect;
 import view.View;
 import writer.InvoiceWriter;
 
@@ -31,7 +32,7 @@ public class Controller extends MouseAdapter implements ActionListener {
 	private UnitPriceCalculator calculator;
 	private ClientsManager clientsManager;
 	private CsvCreater csvCreater;
-	
+
 	private static Controller singleton = new Controller();
 
 	//コンストラクタ
@@ -58,7 +59,6 @@ public class Controller extends MouseAdapter implements ActionListener {
 					inv = new Invoice(invoiceCsv);
 
 					invoiceList.add(inv);
-					inv.setIsSeparate(this.clientsManager.isSeparate(inv.getBillingNum()));
 
 					//道路維持管理の対象か=clients.csvに含まれるかを判断する
 					if (this.clientsManager.isTarget(inv.getBillingNum()) == false) {
@@ -147,12 +147,6 @@ public class Controller extends MouseAdapter implements ActionListener {
 				this.view.allPrintCheck(false);
 			}
 			break;
-		case "一括":
-			this.view.setAllSeparatePrint(false);
-			break;
-		case "別":
-			this.view.setAllSeparatePrint(true);
-			break;
 		}
 	}
 
@@ -182,19 +176,17 @@ public class Controller extends MouseAdapter implements ActionListener {
 	//CSVを自動作成
 	private void createCsv(ClosingDay closingDate) {
 
-		//確認
-		if (this.view.showInputDialog(closingDate.toString() + "日締の請求書でOK？") != 0) {
-			return;
-		}
-		
+		//指定された締め日のClientインスタンスを抽出・並び変えたコレクションを取得
+		List<Client> clientList = this.clientsManager.narrowDownByClosingDate(closingDate);
+
+		new PrintSelect(clientList);
+
 		//注意
 		this.view.addMsg("個別発行を画面左上にピッタリ配置して、");
 		this.view.addMsg("新規ボタンをクリックした状態でOKボタンを押してください。");
 		this.view.addMsg("自動操作中はマウス・キーボードは触れません。");
 		this.view.addMsg("中断するときは少しの間マウスを動かしてください。");
 		this.view.showBufferMsg();
-
-		List<Client> clientList = this.clientsManager.narrowDownByClosingDate(closingDate);
 
 		//要素ClientのbillingNumで繰り返し出力作業をする。
 		try {
@@ -205,7 +197,7 @@ public class Controller extends MouseAdapter implements ActionListener {
 			this.view.showMessage("CSV作成完了！");
 		} catch (AWTException e) {
 			this.view.showMessage(e.getMessage());
-		}catch(CsvCreater.UnspecifidePositionException e) {
+		} catch (CsvCreater.UnspecifidePositionException e) {
 			//CsvCreaterでマウスのクリックまえに指定座標から動いていると例外を投げる
 			this.view.addMsg("自動操作を終了します。");
 			//どこまで出力できているかを表示させる。

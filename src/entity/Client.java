@@ -2,16 +2,21 @@ package entity;
 
 public class Client {
 
-	private int billingNum;
-	private String name;
+	//請求方法の定数
+	public static final int DEDICATED_BILLING = 0;
+	public static final int TOTALSHEET_BILLING = 1;
+	public static final int SEPARATE_BILLING = 2;
+	public static final int NOMAL_BILLING = 3;
+
+	public int billingNum;
+	public String name;
 	ClosingDay closingDate;
-	private int baseValue;
-	private int doroijiValue;
-	private boolean isSeparate;
-	private boolean isOnly;
+	public int baseValue;
+	public int doroijiValue;
+	public int billingMethod;
 
 	//コンストラクタ
-	public Client(int billingNum, String name, String closingDateStr, int baseValue, int isSeparateNum, int isOnlyNum) {
+	public Client(int billingNum, String name, String closingDateStr, int baseValue, int billingMethod) {
 		this.billingNum = billingNum;
 		this.name = name;
 		this.baseValue = baseValue;
@@ -24,18 +29,7 @@ public class Client {
 			this.doroijiValue = 1000;
 		}
 
-		//separateNumが１なら現場別なのでtrue
-		if (isSeparateNum == 1) {
-			this.isSeparate = true;
-		} else {
-			this.isSeparate = false;
-		}
-		//isOnlyNumが１なら専用請求書なのでtrue
-		if (isOnlyNum == 1) {
-			this.isOnly = true;
-		} else {
-			this.isOnly = false;
-		}
+		this.billingMethod = billingMethod;
 	}
 
 	public ClosingDay getClosingDate() {
@@ -58,11 +52,7 @@ public class Client {
 		return baseValue;
 	}
 
-	public boolean isSeparate() {
-		return isSeparate;
-	}
-
-	public boolean isOnly() {
-		return this.isOnly;
+	public int getBillingMethod() {
+		return this.billingMethod;
 	}
 }

@@ -88,13 +88,6 @@ public class View {
 		}
 	}
 
-	public void setAllSeparatePrint(boolean boo) {
-		List<InvoicePanel> panels = this.listPanel.getPanels();
-		for (InvoicePanel panel : panels) {
-			panel.setIsSeparatePrint(boo);
-		}
-	}
-
 	public void setNotPrint(List notPrintList) {
 		for (InvoicePanel panel : this.listPanel.getPanels()) {
 			if (notPrintList.contains(panel.getInvoice().getBillingNum())) {
@@ -114,9 +107,7 @@ public class View {
 		for (int i = 0; i < panels.size(); i++) {
 			if (panels.get(i).isPrint() == true) {
 				Invoice inv = panels.get(i).getInvoice();
-				inv.setIsSeparate(panels.get(i).isSeparatePrint());
 				result.add(inv);
-
 			}
 		}
 		return result;
@@ -129,7 +120,7 @@ public class View {
 	public int showConfirm(String msg) {
 		return JOptionPane.showConfirmDialog(this.frame, msg);
 	}
-	
+
 	public String showInputDialog(String msg) {
 		return JOptionPane.showInputDialog(msg);
 	}

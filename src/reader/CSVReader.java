@@ -109,16 +109,14 @@ public class CSVReader {
 			//社名
 			String name = line[1];
 			//締め日
-			String closingDateStr = line[2]; 
+			String closingDateStr = line[2];
 			//生コンベース単価
 			int baseValue = Integer.parseInt(line[3]);
-			//現場別請求かどうか
-			int separateNum = Integer.parseInt(line[4]);
-			//専用請求書かどうか
-			int isOnlyNum = Integer.parseInt(line[5]);
+			//請求方法
+			int billingMethodNum = Integer.parseInt(line[4]);
 			//キーを請求先CにしてMapに追加
-			result.put(billingNum, 
-					new Client(billingNum,name,closingDateStr,baseValue,separateNum,isOnlyNum));
+			result.put(billingNum,
+					new Client(billingNum, name, closingDateStr, baseValue, billingMethodNum));
 		}
 		return result;
 	}

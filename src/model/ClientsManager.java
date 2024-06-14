@@ -35,15 +35,6 @@ public class ClientsManager {
 		}
 	}
 
-	public boolean isSeparate(int billingNum) {
-		Client c = this.clientsMap.get(billingNum);
-		if (c == null) {
-			return false;
-		} else {
-			return c.isSeparate();
-		}
-	}
-
 	public int getDoroijiValue(int billingNum) {
 		Client c = this.clientsMap.get(billingNum);
 		if (c == null) {
@@ -62,12 +53,12 @@ public class ClientsManager {
 		}
 	}
 
-	public boolean isOnly(int billingNum) {
+	public int getBillingMethod(int billingNum) {
 		Client c = this.clientsMap.get(billingNum);
 		if (c == null) {
-			return true;
+			return ３;
 		} else {
-			return this.clientsMap.get(billingNum).isOnly();
+			return this.clientsMap.get(billingNum).getBillingMethod();
 		}
 	}
 
@@ -102,6 +93,7 @@ public class ClientsManager {
 		List<Client> result = new ArrayList<>();
 
 		Client c;
+		//引数の締め日のClientインスタンスをMapから抽出
 		for (int i : this.clientsMap.keySet()) {
 			c = this.clientsMap.get(i);
 			if (c.getClosingDate() == closingDate) {
@@ -114,8 +106,17 @@ public class ClientsManager {
 
 			@Override
 			public int compare(Client o1, Client o2) {
-
-				return o1.getBillingNum() - o2.getBillingNum();
+				int result = 0;
+				//先方→総括→現場の順でかつ請求先Cの昇順
+				//同じ請求方法あれば請求先Cを比べる
+				int o1Method = o1.getBillingMethod();
+				int o2Method = o2.getBillingMethod();
+				if (o1Method == o2Method) {
+					return o1.getBillingNum() - o2.getBillingNum();
+				} else {
+					//請求方法が違うClientなら先方→総括→現場→ノーマルの順
+					return o1Method - o2Method;
+				}
 			}
 
 		});
