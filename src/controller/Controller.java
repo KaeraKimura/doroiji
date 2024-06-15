@@ -29,6 +29,7 @@ import writer.InvoiceWriter;
 public class Controller extends MouseAdapter implements ActionListener {
 
 	private View view;
+	private PrintSelect printSelect;
 	private UnitPriceCalculator calculator;
 	private ClientsManager clientsManager;
 	private CsvCreater csvCreater;
@@ -120,16 +121,14 @@ public class Controller extends MouseAdapter implements ActionListener {
 			this.printDoroijiCsv();
 			break;
 		case "10":
-			this.createCsv(ClosingDay.D_10);
-			break;
 		case "15":
-			this.createCsv(ClosingDay.D_15);
-			break;
 		case "20":
-			this.createCsv(ClosingDay.D_20);
-			break;
 		case "末":
-			this.createCsv(ClosingDay.D_LAST);
+			ClosingDay closingDay = ClosingDay.getTypeByValue(e.getActionCommand());
+			if(this.printSelect != null) {
+				this.printSelect.dispose();
+			}
+			this.printSelect = new PrintSelect(closingDay);
 			break;
 		}
 	}
@@ -138,7 +137,13 @@ public class Controller extends MouseAdapter implements ActionListener {
 	public void mouseClicked(MouseEvent e) {
 
 		String labelStr = ((JLabel) e.getSource()).getText();
-
+		
+		//ダブルクリックかつソースがClientLabelであれば
+		if(e.getClickCount() == 2 && this.printSelect != null 
+				&& this.printSelect.isClientLabel(e.getSource())) {
+			this.printSelect.setBillingNum(e.getSource());
+		}
+		
 		switch (labelStr) {
 		case "出力":
 			if (e.getClickCount() == 2) {
@@ -174,12 +179,7 @@ public class Controller extends MouseAdapter implements ActionListener {
 	}
 
 	//CSVを自動作成
-	private void createCsv(ClosingDay closingDate) {
-
-		//指定された締め日のClientインスタンスを抽出・並び変えたコレクションを取得
-		List<Client> clientList = this.clientsManager.narrowDownByClosingDate(closingDate);
-
-		new PrintSelect(clientList);
+	private void createCsv(List<Client> clientList) {
 
 		//注意
 		this.view.addMsg("個別発行を画面左上にピッタリ配置して、");
