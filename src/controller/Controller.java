@@ -32,7 +32,6 @@ public class Controller extends MouseAdapter implements ActionListener {
 	private PrintSelect printSelect;
 	private UnitPriceCalculator calculator;
 	private ClientsManager clientsManager;
-	private CsvCreater csvCreater;
 
 	private static Controller singleton = new Controller();
 
@@ -125,10 +124,37 @@ public class Controller extends MouseAdapter implements ActionListener {
 		case "20":
 		case "末":
 			ClosingDay closingDay = ClosingDay.getTypeByValue(e.getActionCommand());
-			if(this.printSelect != null) {
+			if (this.printSelect != null) {
 				this.printSelect.dispose();
 			}
 			this.printSelect = new PrintSelect(closingDay);
+			break;
+		case "createRangeDecide":
+			int createStartNum = this.printSelect.getStartNum();
+			int createEndNum = this.printSelect.getEndNum();
+			//startがendより大きい場合はメッセージを出す
+			if (createStartNum > createEndNum) {
+				this.view.showMessage("開始番号が終了番号より大きいです。");
+				return;
+			}
+			//開始～終了番号のListを作成
+			List<Client> list = this.clientsManager.narrowDownByClosingDate(this.printSelect.closingDay);
+			List<Client> result = new ArrayList<>();
+			Client c;
+			boolean flag = false;
+			for (int i = 0; i < list.size(); i++) {
+				c = list.get(i);
+				if (c.getBillingNum() == createStartNum) {
+					flag = true;
+				}
+				if (flag == true) {
+					result.add(c);
+				}
+				if (c.getBillingNum() == createEndNum) {
+					break;
+				}
+			}
+			this.createCsv(result);
 			break;
 		}
 	}
@@ -137,13 +163,13 @@ public class Controller extends MouseAdapter implements ActionListener {
 	public void mouseClicked(MouseEvent e) {
 
 		String labelStr = ((JLabel) e.getSource()).getText();
-		
+
 		//ダブルクリックかつソースがClientLabelであれば
-		if(e.getClickCount() == 2 && this.printSelect != null 
+		if (e.getClickCount() == 2 && this.printSelect != null
 				&& this.printSelect.isClientLabel(e.getSource())) {
 			this.printSelect.setBillingNum(e.getSource());
 		}
-		
+
 		switch (labelStr) {
 		case "出力":
 			if (e.getClickCount() == 2) {
@@ -190,7 +216,8 @@ public class Controller extends MouseAdapter implements ActionListener {
 
 		//要素ClientのbillingNumで繰り返し出力作業をする。
 		try {
-			csvCreater = new CsvCreater(this.clientsManager.getLatestClosingDate(closingDate));
+			CsvCreater csvCreater = new CsvCreater(
+					this.clientsManager.getLatestClosingDate(this.printSelect.closingDay));
 			for (Client c : clientList) {
 				csvCreater.print(c.getBillingNum());
 			}

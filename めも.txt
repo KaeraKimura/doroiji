@@ -14,4 +14,5 @@ JVで現場別で１現場で先方のとき
 
 ClientManagerでKeyに無いものは例外を投げよう
 
-billingMehodはやっぱりEnum
+printSelectのstartNumとendはclosingDayの最初と最後の番号
+
