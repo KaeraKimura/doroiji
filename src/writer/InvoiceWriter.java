@@ -31,7 +31,7 @@ public class InvoiceWriter {
 			if (inv.getSalesRow().size() == 0) {
 				continue;
 			}
-			inv.addDoroiji();	//道路維持管理費をプラス（マイナスは一覧作成のとき)
+			inv.addDoroiji(); //道路維持管理費をプラス（マイナスは一覧作成のとき)
 			//請求方法によって出力方法を変える
 			billingMethod = cm.getBillingMethod(inv.getBillingNum());
 			if (billingMethod == Client.NOMAL_BILLING) {
@@ -76,7 +76,7 @@ public class InvoiceWriter {
 				}
 				salesPrintCnt++;
 			}
-			
+
 		}
 
 		//道路維持管理費の合計が０なら道路維持の請求書を出さない。
@@ -130,6 +130,7 @@ public class InvoiceWriter {
 			//道路維持管理費の計算
 			int doroijiSales = this.calcConsDoroijiSales(sales, invoice.getDoroijiValue());
 			for (int i = 1; i <= pageCount; i++) {
+				boolean is1stPage = true;
 				printPageCount++;
 				//ヘッダー
 				this.printHeader(invoice, printPageCount);
@@ -155,12 +156,13 @@ public class InvoiceWriter {
 					salesPrintCount++;
 				}
 				//金額出力
-				if (pageCount == 1) {
+				if (is1stPage == true) {
 					int totalSales = concreteSales + doroijiSales;
 					int tax = (int) (totalSales * 0.1);
 					int billing = totalSales + tax;
 					this.pw.print(",,," + totalSales + "," + tax + ","
 							+ billing + ",,,,,,\r\n");
+					is1stPage = false;
 				} else {
 					this.printEmptyRow();
 				}
@@ -256,7 +258,7 @@ public class InvoiceWriter {
 		int result = 0;
 		for (SaleContent sale : sales) {
 			if (sale.isDoroiji()) {
-				result = result -new BigDecimal(sale.getVol()).multiply(new BigDecimal(doroijiValue)).intValue();
+				result = result - new BigDecimal(sale.getVol()).multiply(new BigDecimal(doroijiValue)).intValue();
 			}
 		}
 
@@ -347,7 +349,7 @@ public class InvoiceWriter {
 
 	private void printDoroiji(int doroijiSales, int billingMonth) {
 		this.pw.print(",,,,,,道路維持管理費,,," + doroijiSales + "," + billingMonth + "月分,\r\n");
-		this.pw.print(",,,,,,【現場計】,,," + doroijiSales + ",,\r\n");
+		this.pw.print(",,,,,,【合　計】,,," + doroijiSales + ",,\r\n");
 		for (int i = 1; i <= 39; i++) {
 			this.printEmptyRow();
 		}
@@ -358,7 +360,7 @@ public class InvoiceWriter {
 	private void printDoroiji(int doroijiSales, int billingMonth, String consName) {
 		this.printConsName(consName);
 		this.pw.print(",,,,,,道路維持管理費,,," + doroijiSales + "," + billingMonth + "月分,\r\n");
-		this.pw.print(",,,,,,【合計】,,," + doroijiSales + ",,\r\n");
+		this.pw.print(",,,,,,【現場計】,,," + doroijiSales + ",,\r\n");
 		for (int i = 1; i <= 38; i++) {
 			this.printEmptyRow();
 		}
