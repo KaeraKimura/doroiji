@@ -26,7 +26,7 @@ import entity.Invoice;
 public class View {
 
 	private JFrame frame;
-	private Color color;
+	public final static Color color = Color.decode("#E3F2FD");;
 	private JScrollPane scrollPane;
 	private JOptionPane msgPane;
 	private ListPanel listPanel;
@@ -37,8 +37,6 @@ public class View {
 	private View() {
 		this.controller = Controller.getInstance();
 		this.msgBuffer = new StringBuffer();
-
-		this.color = Color.decode("#E3F2FD");
 		this.frame = new JFrame("道路維持管理請求書");
 		ImageIcon icon = new ImageIcon("data/icon.png");
 		this.frame.setIconImage(icon.getImage());
@@ -129,11 +127,13 @@ public class View {
 		HeaderPanel() {
 			//			this.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
 			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+			this.setMaximumSize(new Dimension(500, 50));
+			this.setPreferredSize(new Dimension(500, 50));
 			this.setBackground(color);
 			//請求先名ラベル
 			JLabel nameLabel = new JLabel("請求先名");
 			nameLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
-			nameLabel.setMaximumSize(new Dimension(260, 20));
+			nameLabel.setMaximumSize(new Dimension(350, 20));
 			nameLabel.setHorizontalAlignment(JLabel.CENTER);
 			this.add(nameLabel);
 			//出力選択ラベル
@@ -144,19 +144,19 @@ public class View {
 			printLabel.addMouseListener(Controller.getInstance());
 
 			this.add(printLabel);
-			//一括か現場別化の選択
-			JLabel radioLabel = new JLabel("一括");
-			radioLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
-			radioLabel.setMaximumSize(new Dimension(80, 20));
-			radioLabel.setHorizontalAlignment(JLabel.CENTER);
-			radioLabel.addMouseListener(Controller.getInstance());
-			this.add(radioLabel);
-			radioLabel = new JLabel("別");
-			radioLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
-			radioLabel.setMaximumSize(new Dimension(80, 20));
-			radioLabel.setHorizontalAlignment(JLabel.CENTER);
-			radioLabel.addMouseListener(Controller.getInstance());
-			this.add(radioLabel);
+//			//一括か現場別化の選択
+//			JLabel radioLabel = new JLabel("一括");
+//			radioLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
+//			radioLabel.setMaximumSize(new Dimension(80, 20));
+//			radioLabel.setHorizontalAlignment(JLabel.CENTER);
+//			radioLabel.addMouseListener(Controller.getInstance());
+//			this.add(radioLabel);
+//			radioLabel = new JLabel("別");
+//			radioLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
+//			radioLabel.setMaximumSize(new Dimension(80, 20));
+//			radioLabel.setHorizontalAlignment(JLabel.CENTER);
+//			radioLabel.addMouseListener(Controller.getInstance());
+//			this.add(radioLabel);
 		}
 	}
 

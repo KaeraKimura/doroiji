@@ -29,6 +29,7 @@ public class PrintSelect extends JFrame {
 	private JLabel currentSelectLabel;
 	private ClientLabel currentOverLabel;
 	public final ClosingDay closingDay;
+	public final List<Client> clientList;
 
 	//コンストラクタ
 	public PrintSelect(ClosingDay closingDay) {
@@ -40,10 +41,10 @@ public class PrintSelect extends JFrame {
 		panel.setLayout(layout);
 
 		//指定された締め日のClientインスタンスを抽出・並び変えたコレクションを取得
-		List<Client> clientList = Controller.getInstance()
+		clientList = Controller.getInstance()
 				.getClientsManager().narrowDownByClosingDate(closingDay);
 
-		JLabel label = new JLabel("<html>CSVを作成する請求先Cを指定してください。</html>");
+		JLabel label = new JLabel("<html>CSVを作成する請求先を指定してください。</html>");
 		label.setFont(new Font(View.getFontName(), Font.BOLD, 18));
 		layout.putConstraint(SpringLayout.NORTH, label, 20, SpringLayout.NORTH, panel);
 		layout.putConstraint(SpringLayout.WEST, label, 20, SpringLayout.WEST, panel);
@@ -90,7 +91,8 @@ public class PrintSelect extends JFrame {
 
 		//現在選択中のラベル（初期値はstartNumLabel)
 		this.currentSelectLabel = startNumLabel;
-		currentSelectLabel.setBorder(new LineBorder(Color.black, 2));
+		this.startNumLabel.setBackground(View.color);
+		this.startNumLabel.setBorder(new LineBorder(Color.black,3));
 
 		this.closingDay = closingDay;
 	}
@@ -107,8 +109,10 @@ public class PrintSelect extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				currentSelectLabel.setBorder(new LineBorder(Color.black, 1));
+				currentSelectLabel.setBackground(Color.white);
 				currentSelectLabel = l;
-				currentSelectLabel.setBorder(new LineBorder(Color.black, 2));
+				currentSelectLabel.setBorder(new LineBorder(Color.black, 3));
+				currentSelectLabel.setBackground(View.color);
 			}
 		});
 		return l;
@@ -125,7 +129,7 @@ public class PrintSelect extends JFrame {
 	public boolean isClientLabel(Object o) {
 		return o instanceof ClientLabel;
 	}
-
+ 
 	public void setBillingNum(Object o) {
 		if (o instanceof ClientLabel) {
 			int billingNum = ((ClientLabel) o).getBillingNum();

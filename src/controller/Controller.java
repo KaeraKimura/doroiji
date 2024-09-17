@@ -25,6 +25,7 @@ import reader.CSVReader;
 import view.PrintSelect;
 import view.View;
 import writer.InvoiceWriter;
+import writer.ListWriter;
 
 public class Controller extends MouseAdapter implements ActionListener {
 
@@ -49,22 +50,21 @@ public class Controller extends MouseAdapter implements ActionListener {
 		CSVReader reader = new CSVReader();
 		List<Invoice> invoiceList = new ArrayList<Invoice>();
 
-		//JVなどclients.csvに無い業者のInvoicePanelのisPrintをfalseにするためのList
-		List<Integer> notPrintList = new ArrayList<Integer>();
+		//clients.csvに無い業者が含まれるかのフラグ
+		boolean flag = true;
 		for (File f : files) {
 			try {
 				List<List<String[]>> csvData = reader.createInvoiceData(f.toPath());
 				for (List<String[]> invoiceCsv : csvData) {
 					Invoice inv = null;
 					inv = new Invoice(invoiceCsv);
-
-					invoiceList.add(inv);
-
-					//道路維持管理の対象か=clients.csvに含まれるかを判断する
-					if (this.clientsManager.isTarget(inv.getBillingNum()) == false) {
-						//対象外＝clients.csvに記載がない業者はmsgに追加
+					//clients.csvに含まれるかを判断する
+					if (this.clientsManager.contains(inv.getBillingNum()) == false) {
+						//clients.csvに記載がない業者はmsgに追加
 						View.getInstance().addMsg(inv.getBillingNum() + " " + inv.getCmpName());
-						notPrintList.add(inv.getBillingNum());
+						flag = false;
+					}else {
+						invoiceList.add(inv);
 					}
 				}
 			} catch (Exception e) {
@@ -73,24 +73,25 @@ public class Controller extends MouseAdapter implements ActionListener {
 				this.view.addMsg(e.getMessage());
 				this.view.showBufferMsg();
 				e.printStackTrace();
-
 				return;
 			}
 		}
+		//viewにInvoicePanelを追加
 		view.addInvoicePanel(invoiceList);
-		if (notPrintList.size() > 0) {
-			view.addMsg("の出力方法を設定してください。");
-			view.setNotPrint(notPrintList);
+		if (flag == false) {
+			view.addMsg("<html>client.csvに記載のない業者です。<br>"
+					+ "出力するにはcsvへの入力が必要です。。<html>");
 		}
 		view.showBufferMsg();
 	}
 
 	public void startApplication() {
 
-		//スライド・割増の読み込み
+		//業者一覧・スライド・割増の読み込み
+		Path clientsCsvPath = Paths.get("data/clients.csv");
 		Path productCsvPath = Paths.get("data/productCode.csv");
 		Path warimashiCsvPath = Paths.get("data/warimashi.csv");
-		Path clientsCsvPath = Paths.get("data/clients.csv");
+		
 		CSVReader csvReader = new CSVReader();
 		try {
 			Map<Integer, Integer> products = csvReader.createProductMap(productCsvPath);
@@ -101,7 +102,6 @@ public class Controller extends MouseAdapter implements ActionListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		this.view = View.getInstance();
 	}
 
@@ -117,7 +117,25 @@ public class Controller extends MouseAdapter implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
 		case "CSV出力":
-			this.printDoroijiCsv();
+			List<Invoice> printInvoiceList = this.view.getSelectedInvoiceList();
+			this.printDoroijiCsv(printInvoiceList);
+			//CSV出力後、道路維持管理費一覧を更新するかを確認。
+			if(this.view.showConfirm("道路維持管理費一覧を更新しますか？") == 0) {
+				//更新する一覧の年月を取得
+				String closingDate = printInvoiceList.get(0).getClosingDateStr();
+				String yearStr = closingDate.substring(0,4);
+				String monthStr = closingDate.substring(7,9);
+				String fileName = yearStr + "." + monthStr + ".csv";
+				Map<Integer,int[]> map = this.clientsManager
+						.createDoroijiMap(fileName, printInvoiceList);
+				try {
+					new ListWriter().write(fileName,map);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				this.view.showMessage("一覧を更新しました。");
+			}
+			
 			break;
 		case "10":
 		case "15":
@@ -130,31 +148,18 @@ public class Controller extends MouseAdapter implements ActionListener {
 			this.printSelect = new PrintSelect(closingDay);
 			break;
 		case "createRangeDecide":
+			//指定された締め日のCsvを作成する
 			int createStartNum = this.printSelect.getStartNum();
 			int createEndNum = this.printSelect.getEndNum();
-			//startがendより大きい場合はメッセージを出す
-			if (createStartNum > createEndNum) {
-				this.view.showMessage("開始番号が終了番号より大きいです。");
-				return;
+			//指定範囲を検証
+			if(this.clientsManager.validateSelectedOrder(this.printSelect.clientList,
+					createStartNum, createEndNum) == false) {
+				View.getInstance().showMessage("終了番号より後の順番の業者は開始番号に指定できません。");
+				return ;
 			}
-			//開始～終了番号のListを作成
-			List<Client> list = this.clientsManager.narrowDownByClosingDate(this.printSelect.closingDay);
-			List<Client> result = new ArrayList<>();
-			Client c;
-			boolean flag = false;
-			for (int i = 0; i < list.size(); i++) {
-				c = list.get(i);
-				if (c.getBillingNum() == createStartNum) {
-					flag = true;
-				}
-				if (flag == true) {
-					result.add(c);
-				}
-				if (c.getBillingNum() == createEndNum) {
-					break;
-				}
-			}
-			this.createCsv(result);
+			List<Client> cliateCsvList = this.clientsManager.createCsvList(this.printSelect.clientList,
+					createStartNum, createEndNum);
+			this.createCsv(cliateCsvList);
 			break;
 		}
 	}
@@ -182,8 +187,8 @@ public class Controller extends MouseAdapter implements ActionListener {
 	}
 
 	//
-	private void printDoroijiCsv() {
-		List<Invoice> printInvoiceList = this.view.getSelectedInvoiceList();
+	private void printDoroijiCsv(List<Invoice> printInvoiceList) {
+		
 		if (printInvoiceList.size() == 0) {
 			this.view.showMessage("出力する内容がないです。");
 			return;
@@ -200,7 +205,7 @@ public class Controller extends MouseAdapter implements ActionListener {
 		if (writer != null) {
 			writer.close();
 		}
-		this.view.addMsg("出力が終わりました。");
+		this.view.addMsg("CSV出力が終わりました。");
 		this.view.showBufferMsg();
 	}
 
@@ -222,6 +227,7 @@ public class Controller extends MouseAdapter implements ActionListener {
 				csvCreater.print(c.getBillingNum());
 			}
 			this.view.showMessage("CSV作成完了！");
+			this.printSelect.dispose();
 		} catch (AWTException e) {
 			this.view.showMessage(e.getMessage());
 		} catch (CsvCreater.UnspecifidePositionException e) {

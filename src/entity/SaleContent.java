@@ -1,5 +1,7 @@
 package entity;
 
+import java.math.BigDecimal;
+
 public class SaleContent {
 
 	private String date;
@@ -102,10 +104,10 @@ public class SaleContent {
 	}
 
 	public int getTotal() {
-		double vol = 0;
+		BigDecimal vol;
 		try {
-			vol = Double.parseDouble(this.vol);
-			this.total = (int) (this.unit * vol);
+			vol = new BigDecimal(this.vol);
+			this.total = vol.multiply(new BigDecimal(String.valueOf(this.unit))).intValue();
 		} catch (NumberFormatException e) {
 			return this.total;
 		}

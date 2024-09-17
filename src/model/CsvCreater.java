@@ -14,6 +14,8 @@ public class CsvCreater extends Robot {
 
 	private Clipboard clipboard;
 	private int defaultSalesAreaColorRGB;
+	private int defaultDeleteBtnColorRGB;
+	
 	private LocalDate closingDate;
 	//新規ボタンの座標
 	private final int RESET_X = 25;
@@ -33,15 +35,21 @@ public class CsvCreater extends Robot {
 	
 	private int completedBillingNum;
 	
-	public CsvCreater(LocalDate closingDate) throws AWTException {
+	public CsvCreater(LocalDate closingDate) throws AWTException, UnspecifidePositionException {
 		super();
 		//入力する〆日
 		this.closingDate = closingDate;
 		//クリップボートオブジェクト生成
 		clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		
+		//開始まえに少しまつ
+		this.delay(2500);
 
-		//売上表示欄の色のRGB
+		//売上表示欄・削除ボタンの色のRGB
+		this.pushReset();
+		this.delay(500);
 		this.defaultSalesAreaColorRGB = this.getSalesAreaColorRGB();
+		this.defaultDeleteBtnColorRGB = this.getDeleteBtnColorRGB();
 	}
 
 	//自動作業のルーチン
@@ -76,14 +84,20 @@ public class CsvCreater extends Robot {
 		this.pressEnter(this.RESET_X,this.RESET_Y);
 
 		//集計が完了したかを画面の色から判断する。
-		for (int i = 0; i < 7; i++) {
-			if (i == 6) {
-				//6回(約3秒経っても）変化が無い場合は売上無しとして以降の処理をスキップ
-				return;
-			}
+		for (int i = 0; ; i++) {
+			System.out.println(billingNum + ":" + i);
 			this.delay(500);
+			//売上行の色が変わる＝集計完了なのでbreakして出力
 			if (this.defaultSalesAreaColorRGB != this.getSalesAreaColorRGB()) {
 				break;
+			}
+			//1秒経過しても削除ボタンの色に変化が無い＝売上なしなので処理を終了
+			if(i == 2 && this.defaultDeleteBtnColorRGB == this.getDeleteBtnColorRGB()) {
+				return;
+			}
+			//3秒経過して何も変化が無いときも終了
+			if(i == 6) {
+				return;
 			}
 		}
 
@@ -112,6 +126,10 @@ public class CsvCreater extends Robot {
 
 	private int getSalesAreaColorRGB() {
 		return this.getPixelColor(485, 335).getRGB();
+	}
+	
+	private int getDeleteBtnColorRGB() {
+		return this.getPixelColor(175, 45).getRGB();
 	}
 
 	//数字の入力
@@ -167,7 +185,6 @@ public class CsvCreater extends Robot {
 		this.validateMousePosition(PRINT_END_X, PRINT_END_Y);
 		this.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
-
 	
 	//マウス座標の確認
 	private boolean validateMousePosition(int x, int y) throws UnspecifidePositionException {

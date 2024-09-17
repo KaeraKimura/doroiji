@@ -12,23 +12,34 @@ public class Client {
 	public String name;
 	ClosingDay closingDate;
 	public int baseValue;
+	boolean isDoroijiCmp;
 	public int doroijiValue;
 	public int billingMethod;
 
 	//コンストラクタ
-	public Client(int billingNum, String name, String closingDateStr, int baseValue, int billingMethod) {
+	public Client(int billingNum, String name, String closingDateStr, int baseValue,
+			int isDoroijiCmpNum, int billingMethod) {
 		this.billingNum = billingNum;
 		this.name = name;
 		this.baseValue = baseValue;
 		this.closingDate = ClosingDay.getTypeByValue(closingDateStr);
 
-		//20500か20300なら地区内なので1500。それいがいは地区外なので1000
-		if (baseValue == 20500 || baseValue == 20300) {
-			this.doroijiValue = 1500;
-		} else {
-			this.doroijiValue = 1000;
+		//道路維持管理費の対象業者か？
+		if(isDoroijiCmpNum == 0) {
+			this.isDoroijiCmp = true;
+		}else {
+			this.isDoroijiCmp = false;
 		}
-
+				
+		//道路維持管理費の対象業者であれば単価を設定。
+		if(this.isDoroijiCmp == true) {
+			//20500か20300なら地区内なので1500。それいがいは地区外なので1000
+			if (baseValue == 20500 || baseValue == 20300) {
+				this.doroijiValue = 1500;
+			} else {
+				this.doroijiValue = 1000;
+			}
+		}
 		this.billingMethod = billingMethod;
 	}
 
@@ -50,6 +61,10 @@ public class Client {
 
 	public int getBaseValue() {
 		return baseValue;
+	}
+	
+	public boolean isDoroijiCmp() {
+		return this.isDoroijiCmp;
 	}
 
 	public int getBillingMethod() {

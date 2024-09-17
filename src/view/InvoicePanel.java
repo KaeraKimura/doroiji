@@ -9,7 +9,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -19,10 +18,10 @@ import entity.Invoice;
 public class InvoicePanel extends JPanel {
 
 	private Invoice invoice;
-	private JCheckBox checkBox;
+	private JCheckBox printCheck;
 	private ButtonGroup btnGroup;
-	private JRadioButton separateRadio;
-	private JRadioButton bunchRadio;
+//	private JRadioButton separateRadio;
+//	private JRadioButton bunchRadio;
 
 	//コンストラクタ
 	InvoicePanel(Invoice invoice) {
@@ -37,49 +36,49 @@ public class InvoicePanel extends JPanel {
 		//ラベル
 		JLabel nameLabel = new JLabel(invoice.getShapeCmpName());
 		nameLabel.setFont(new Font(View.getFontName(), Font.BOLD, 18));
-		nameLabel.setMaximumSize(new Dimension(260, 50));
+		nameLabel.setMaximumSize(new Dimension(350, 50));
 		nameLabel.setBackground(color);
 		nameLabel.setPreferredSize(nameLabel.getMaximumSize());
 		this.add(nameLabel);
 		//チェックボックス
-		this.checkBox = new JCheckBox("", true);
-		this.checkBox.setMaximumSize(new Dimension(80, 50));
-		this.checkBox.setBackground(color);
-		this.checkBox.setHorizontalAlignment(JCheckBox.CENTER);
-		this.checkBox.addChangeListener(new ChangeListener() {
+		this.printCheck = new JCheckBox("", true);
+		this.printCheck.setMaximumSize(new Dimension(80, 50));
+		this.printCheck.setBackground(color);
+		this.printCheck.setHorizontalAlignment(JCheckBox.CENTER);
+		this.printCheck.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				boolean state = ((JCheckBox) e.getSource()).isSelected();
 				changeState(state);
 			}
 		});
-		this.add(this.checkBox);
+		this.add(this.printCheck);
 		//ラジオボタン
-		this.bunchRadio = new JRadioButton();
-		bunchRadio.setActionCommand("bunch");
-		bunchRadio.setMaximumSize(new Dimension(80, 50));
-		bunchRadio.setBackground(color);
-		bunchRadio.setHorizontalAlignment(JRadioButton.CENTER);
-		bunchRadio.setSelected(true);
-		this.add(bunchRadio);
-		this.separateRadio = new JRadioButton();
-		separateRadio.setMaximumSize(new Dimension(80, 50));
-		separateRadio.setActionCommand("separate");
-		separateRadio.setBackground(color);
-		separateRadio.setHorizontalAlignment(JRadioButton.CENTER);
-		this.add(separateRadio);
-		this.btnGroup = new ButtonGroup();
-		this.btnGroup.add(bunchRadio);
-		this.btnGroup.add(separateRadio);
+//		this.bunchRadio = new JRadioButton();
+//		bunchRadio.setActionCommand("bunch");
+//		bunchRadio.setMaximumSize(new Dimension(80, 50));
+//		bunchRadio.setBackground(color);
+//		bunchRadio.setHorizontalAlignment(JRadioButton.CENTER);
+//		bunchRadio.setSelected(true);
+//		this.add(bunchRadio);
+//		this.separateRadio = new JRadioButton();
+//		separateRadio.setMaximumSize(new Dimension(80, 50));
+//		separateRadio.setActionCommand("separate");
+//		separateRadio.setBackground(color);
+//		separateRadio.setHorizontalAlignment(JRadioButton.CENTER);
+//		this.add(separateRadio);
+//		this.btnGroup = new ButtonGroup();
+//		this.btnGroup.add(bunchRadio);
+//		this.btnGroup.add(separateRadio);
 
 	}
 
 	boolean isPrint() {
-		return this.checkBox.isSelected();
+		return this.printCheck.isSelected();
 	}
 
 	void setIsPrint(boolean boo) {
-		this.checkBox.setSelected(boo);
+		this.printCheck.setSelected(boo);
 	}
 
 	Invoice getInvoice() {
@@ -90,19 +89,17 @@ public class InvoicePanel extends JPanel {
 		if (boo == false) {
 			Color color = Color.decode("#EF9A9A");
 			this.setBackground(color);
-			this.checkBox.setBackground(color);
-			this.bunchRadio.setBackground(color);
-			this.bunchRadio.setEnabled(false);
-			this.separateRadio.setBackground(color);
-			this.separateRadio.setEnabled(false);
+			this.printCheck.setBackground(color);
+
 		} else {
 			Color color = Color.decode("#F5F5F5");
 			this.setBackground(color);
-			this.checkBox.setBackground(color);
-			this.bunchRadio.setBackground(color);
-			this.bunchRadio.setEnabled(true);
-			this.separateRadio.setBackground(color);
-			this.separateRadio.setEnabled(true);
+			this.printCheck.setBackground(color);
+
 		}
+	}
+	
+	void setPrintMethod(int printMethod) {
+		
 	}
 }

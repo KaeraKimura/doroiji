@@ -1,11 +1,12 @@
 package entity;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import controller.Controller;
 import model.ClientsManager;
-import model.UnitPriceCalculator;
 
 public class Invoice {
 
@@ -17,8 +18,12 @@ public class Invoice {
 	private String cmpName;
 	//請求先C
 	private int billingNum;
-	//〆日
-	private String closingDate;
+	
+	private ClosingDay closingDay;
+	//〆日 日付情報
+	private LocalDate closingDate;
+	//〆日文字列
+	private String closingDateStr;
 	//前回請求額
 	private int lastBilling;
 	//今回入金額
@@ -29,10 +34,12 @@ public class Invoice {
 	private String transfer;
 	//相殺
 	private String offset;
+	//売上金額
+	private final int initialSale;
 	//売上のList<Map>
 	private List<SaleContent> salesRow;
 	//総量
-	private double totalVol;
+	private BigDecimal totalVol;
 	//請求月
 	private int billingMonth;
 	//道路維持管理費
@@ -43,7 +50,7 @@ public class Invoice {
 	}
 
 	//道路維持管理費を適用前に戻す
-	public void resetDoroizi() {
+	public void resetDoroiji() {
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isDoroiji() == true) {
 				sale.subtractDoroiji(this.doroijiValue);
@@ -69,7 +76,7 @@ public class Invoice {
 		int result = 0;
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isDoroiji() == true) {
-				result += Double.parseDouble(sale.getVol()) * this.doroijiValue;
+				result = result -new BigDecimal(sale.getVol()).multiply(new BigDecimal(this.doroijiValue)).intValue();
 			}
 		}
 		return result;
@@ -84,13 +91,27 @@ public class Invoice {
 		this.address = header[1];
 		this.cmpName = header[4];
 		this.billingNum = Integer.parseInt(header[5]);
-		this.closingDate = header[7];
-		this.billingMonth = Integer.parseInt(this.closingDate.substring(7, 9));
+		
+		this.closingDateStr = header[7];
+		//日付文字列をLocalDateに変換
+		String dateStr = this.closingDateStr;
+		int year = Integer.parseInt(dateStr.substring(0,4));
+		int month = Integer.parseInt(dateStr.substring(7,9));
+		int day = Integer.parseInt(dateStr.substring(12,14));
+		this.closingDate = LocalDate.of(year, month, day);
+		
+		if(day > 25) {
+			this.closingDay = ClosingDay.D_LAST;
+		}else {
+			this.closingDay = ClosingDay.getTypeByValue(String.valueOf(day));
+		}
+		this.billingMonth = Integer.parseInt(this.closingDateStr.substring(7, 9));
 
 		String[] amounts = list.get(42);
 		this.lastBilling = Integer.parseInt(amounts[0]);
 		this.peyment = Integer.parseInt(amounts[1]);
 		this.caryyOver = Integer.parseInt(amounts[2]);
+		this.initialSale = Integer.parseInt(amounts[3]);
 		this.offset = amounts[7];
 		this.transfer = amounts[8];
 
@@ -115,34 +136,14 @@ public class Invoice {
 		//合計数量
 		String volStr = list.get(list.size() - 2)[7];
 		if (volStr.equals("")) {
-			this.totalVol = 0.0;
+			this.totalVol = new BigDecimal("0.0");
 		} else {
-			this.totalVol = Double.parseDouble(volStr);
+			this.totalVol = new BigDecimal(volStr);
 		}
 
 		//道路維持管理費
 		ClientsManager clientsManager = Controller.getInstance().getClientsManager();
-		this.doroijiValue = clientsManager.getDoroijiValue(this.billingNum);
-
-		//doroijiValue = 0 のときはclients.csvに記載のない業者なので売上の単価から道路維持管理費単価を計算
-		if (this.doroijiValue == 0) {
-			UnitPriceCalculator calculator = Controller.getInstance().getCalculator();
-			int baseValue = 0;
-			//売上の中から生コン・モルタルを見つけ、ベース単価を計算
-			for (SaleContent sale : this.salesRow) {
-				if (sale.isConcrete() == true) {
-					baseValue = calculator.getBaseValue(sale, this.billingNum);
-					break;
-				}
-			}
-			//計算したベース単価の下3桁から維持管理費を算定
-			String s = String.valueOf(baseValue).substring(2, 5);
-			if (s.equals("000") || s.equals("800")) {
-				this.doroijiValue = 1000;
-			} else {
-				this.doroijiValue = 1500;
-			}
-		}
+		this.doroijiValue = clientsManager.getDoroijiValue(this.billingNum);		
 	}
 
 	public String getPostCode() {
@@ -166,7 +167,7 @@ public class Invoice {
 		//合同会社を(同)に
 		result = result.replace("合同会社", "(同)");
 		//合資会社を㈾に
-		result = result.replace("合資会社", "㈾");
+		result = result.replace("合資会社", "(資)");
 		//建設工事共同企業体をJVに
 		result = result.replace("建設工事共同企業体", "JV");
 		//スペースを除去
@@ -180,9 +181,16 @@ public class Invoice {
 	public int getBillingNum() {
 		return billingNum;
 	}
-
-	public String getClosingDate() {
-		return closingDate;
+	
+	public ClosingDay getClosingDay() {
+		return this.closingDay;
+	}
+	
+	public LocalDate getClosingDate() {
+		return this.closingDate;
+	}
+	public String getClosingDateStr() {
+		return closingDateStr;
 	}
 
 	public int getLastBilling() {
@@ -196,6 +204,10 @@ public class Invoice {
 	public int getCaryyOver() {
 		return caryyOver;
 	}
+	
+	public int getInitialSale() {
+		return this.initialSale;
+	}
 
 	public int getConcreteSales() {
 		int sales = 0;
@@ -206,15 +218,15 @@ public class Invoice {
 	}
 
 	public int getTax() {
-		int tax = (int) ((this.getConcreteSales() - this.getDoroijiTotal()) * 0.1);
+		int tax = (int) ((this.getConcreteSales() + this.getDoroijiTotal()) * 0.1);
 		return tax;
 	}
 
 	public int getBilling() {
 		int concreteSales = this.getConcreteSales();
 		int doroijiSales = this.getDoroijiTotal();
-		int tax = (int) ((concreteSales - doroijiSales) * 0.1);
-		return concreteSales - doroijiSales + tax;
+		int tax = (int) ((concreteSales + doroijiSales) * 0.1);
+		return concreteSales + doroijiSales + tax;
 	}
 
 	public int getTotalBilling() {
@@ -225,7 +237,7 @@ public class Invoice {
 		return salesRow;
 	}
 
-	public double getTotalVol() {
+	public BigDecimal getTotalVol() {
 		return totalVol;
 	}
 

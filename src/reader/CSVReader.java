@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import controller.Controller;
 import entity.Client;
+import model.ClientsManager;
 
 public class CSVReader {
 
@@ -110,16 +112,41 @@ public class CSVReader {
 			String name = line[1];
 			//締め日
 			String closingDateStr = line[2];
+			//対象業者か？
+			int isDoroijiCmpNum = Integer.parseInt(line[3]);
 			//生コンベース単価
-			int baseValue = Integer.parseInt(line[3]);
+			int baseValue = Integer.parseInt(line[4]);
 			//請求方法
-			int billingMethodNum = Integer.parseInt(line[4]);
+			int billingMethodNum = Integer.parseInt(line[5]);
 			//キーを請求先CにしてMapに追加
 			result.put(billingNum,
-					new Client(billingNum, name, closingDateStr, baseValue, billingMethodNum));
+					new Client(billingNum, name, closingDateStr, baseValue,isDoroijiCmpNum, billingMethodNum));
 		}
 		return result;
 	}
+	
+	//道路維持管理費一覧
+	public Map<Integer,int[]> createDoroijiSaleMap(String csvPath) throws IOException{
+		Map<Integer,int[]> result = new HashMap<>();
+		Path path = Paths.get(csvPath);
+		List<String> lines = Files.readAllLines(path, Charset.forName("MS932"));
+		ClientsManager cm = Controller.getInstance().getClientsManager();
+		String[] line;
+		int billingNum;
+		int doroijiSale;
+		int closingDateNum;
+		for(int i = 0; i < lines.size(); i++) {
+			line = lines.get(i).split(",");
+			billingNum = Integer.parseInt(line[0]);
+			doroijiSale = Integer.parseInt(line[2]);
+			closingDateNum = Integer.parseInt(line[3]);
+			int[] arr = {doroijiSale,closingDateNum};
+			//請求先コードからClientインスタンスを取得してmapに詰める
+			result.put(billingNum, arr);
+		}
+		return result;
+	}
+	
 
 	public static String getCurrentInvoiceCsvName() {
 		return currentInvoiceCsvName;

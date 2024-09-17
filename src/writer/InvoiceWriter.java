@@ -2,9 +2,11 @@ package writer;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,15 +31,14 @@ public class InvoiceWriter {
 			if (inv.getSalesRow().size() == 0) {
 				continue;
 			}
-			inv.addDoroiji();
+			inv.addDoroiji();	//道路維持管理費をプラス（マイナスは一覧作成のとき)
 			//請求方法によって出力方法を変える
 			billingMethod = cm.getBillingMethod(inv.getBillingNum());
-			if (billingMethod != Client.NOMAL_BILLING) {
+			if (billingMethod == Client.NOMAL_BILLING) {
 				this.print(inv);
 			} else {
 				this.consSeparatePrint(inv);
 			}
-			inv.resetDoroizi();
 		}
 	}
 
@@ -75,6 +76,7 @@ public class InvoiceWriter {
 				}
 				salesPrintCnt++;
 			}
+			
 		}
 
 		//道路維持管理費の合計が０なら道路維持の請求書を出さない。
@@ -83,7 +85,6 @@ public class InvoiceWriter {
 			this.printHeader(invoice, ++pageNum);
 			this.printDoroiji(doroijiTotal, invoice.getBillingMonth());
 		}
-
 	}
 
 	public void consSeparatePrint(Invoice invoice) {
@@ -104,14 +105,17 @@ public class InvoiceWriter {
 		ClientsManager cm = Controller.getInstance().getClientsManager();
 		//マップの要素が１つ、かつ専用請求でない場合は一括で印刷する
 		if (consMap.size() == 1 &&
-				cm.getBillingMethod(invoice.getBillingNum()) == Client.DEDICATED_BILLING) {
+				cm.getBillingMethod(invoice.getBillingNum()) != Client.DEDICATED_BILLING) {
 			this.print(invoice);
 			return;
 		}
+		//MapのKeyをGenbaCodeの昇順にしたListを生成
+		List<Integer> genbaCodeList = new ArrayList<>(consMap.keySet());
+		Collections.sort(genbaCodeList);
 
-		//マップの要素ごと(=現場ごと)に請求書CSVを出力する
+		//マップのKayの昇順で請求書CSVを出力する
 		int printPageCount = 0;
-		for (Integer key : consMap.keySet()) {
+		for (Integer key : genbaCodeList) {
 
 			sales = consMap.get(key);
 			//ページ用のカウンタ
@@ -121,7 +125,7 @@ public class InvoiceWriter {
 			//出力する工事名
 			String consName = "";
 			//事前に数量と金額を取得
-			double totalVol = this.calcConsVol(sales);
+			BigDecimal totalVol = this.calcConsVol(sales);
 			int concreteSales = this.calcConsConcreteSales(sales);
 			//道路維持管理費の計算
 			int doroijiSales = this.calcConsDoroijiSales(sales, invoice.getDoroijiValue());
@@ -152,7 +156,7 @@ public class InvoiceWriter {
 				}
 				//金額出力
 				if (pageCount == 1) {
-					int totalSales = concreteSales - doroijiSales;
+					int totalSales = concreteSales + doroijiSales;
 					int tax = (int) (totalSales * 0.1);
 					int billing = totalSales + tax;
 					this.pw.print(",,," + totalSales + "," + tax + ","
@@ -227,15 +231,14 @@ public class InvoiceWriter {
 	}
 
 	//現場別の数量を合計する
-	private double calcConsVol(List<SaleContent> sales) {
-		double result = 0.0;
+	private BigDecimal calcConsVol(List<SaleContent> sales) {
+		BigDecimal result = new BigDecimal("0.0");
 		for (SaleContent sale : sales) {
 			if (sale.isConcrete()) {
-				result += Double.parseDouble(sale.getVol());
+				result = result.add(new BigDecimal(sale.getVol()));
 			}
 		}
-
-		result += 0.00;
+		System.out.println(result);
 		return result;
 	}
 
@@ -253,15 +256,15 @@ public class InvoiceWriter {
 		int result = 0;
 		for (SaleContent sale : sales) {
 			if (sale.isDoroiji()) {
-				result += (int) (Double.parseDouble(sale.getVol()) * doroijiValue);
+				result = result -new BigDecimal(sale.getVol()).multiply(new BigDecimal(doroijiValue)).intValue();
 			}
 		}
 
 		return result;
 	}
 
-	private void printTotalRow(double totalVol, int concreteSales, boolean isSeparate) {
-		String vol = String.valueOf(totalVol);
+	private void printTotalRow(BigDecimal totalVol, int concreteSales, boolean isSeparate) {
+		String vol = totalVol.toString();
 		//小数点第2位に０追加
 		if (vol.length() - vol.indexOf(".") == 2) {
 			vol = vol + "0";
@@ -290,7 +293,7 @@ public class InvoiceWriter {
 		//ページNo
 		this.pw.print(pageNum + ",");
 		//〆日
-		this.pw.print(invoice.getClosingDate() + ",\r\n");
+		this.pw.print(invoice.getClosingDateStr() + ",\r\n");
 	}
 
 	private void printAmounts(Invoice invoice) {
@@ -301,7 +304,7 @@ public class InvoiceWriter {
 		//繰越額
 		this.pw.print(invoice.getCaryyOver() + ",");
 		//今回売上
-		this.pw.print(invoice.getConcreteSales() - invoice.getDoroijiTotal() + ",");
+		this.pw.print(invoice.getConcreteSales() + invoice.getDoroijiTotal() + ",");
 		//消費税
 		this.pw.print(invoice.getTax() + ",");
 		//今回請求額
@@ -355,7 +358,7 @@ public class InvoiceWriter {
 	private void printDoroiji(int doroijiSales, int billingMonth, String consName) {
 		this.printConsName(consName);
 		this.pw.print(",,,,,,道路維持管理費,,," + doroijiSales + "," + billingMonth + "月分,\r\n");
-		this.pw.print(",,,,,,【現場計】,,," + doroijiSales + ",,\r\n");
+		this.pw.print(",,,,,,【合計】,,," + doroijiSales + ",,\r\n");
 		for (int i = 1; i <= 38; i++) {
 			this.printEmptyRow();
 		}
