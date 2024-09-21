@@ -42,14 +42,27 @@ public class SaleContent {
 		this.unit = Integer.parseInt(sale[8]);
 		this.total = Integer.parseInt(sale[9]);
 
-		this.warimashi = sale[10].split(" ");
-
-		//商品区分コードが０か１なら生コン・モルタル
-		if(sale[11].equals("00") || sale[11].equals("01")) {
-			this.isConcrete = true;
-		}else {
+		//saleの長さが10なら修正CSVの空積行
+		if (sale.length != 10) {
+			int code = 99;
+			//空積料は区分コードが空白なので例外処理
+			try {
+				code = Integer.parseInt(sale[11]);
+			} catch (NumberFormatException e) {
+				code = 999;
+			}
+			//商品区分コードが０か１なら生コン・モルタル					
+			if (code == 1 || code == 0) {
+				this.isConcrete = true;
+			} else {
+				this.isConcrete = false;
+			}
+			this.warimashi = sale[10].split(" ");
+		} else {
 			this.isConcrete = false;
+			this.warimashi = new String[0];
 		}
+
 		this.isDoroiji = false;
 	}
 

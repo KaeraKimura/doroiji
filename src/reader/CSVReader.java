@@ -41,8 +41,8 @@ public class CSVReader {
 		List<List<String[]>> result = new ArrayList<List<String[]>>();
 		List<String[]> data = null;
 		for (int i = 0; i < lines.size(); i++) {
-
 			String[] line = lines.get(i).split(",");
+			System.out.println(i + " " + line.length);
 			for (int ii = 0; ii < line.length; ii++) {
 				line[ii] = line[ii].replaceAll("\"", "");
 			}
@@ -120,14 +120,14 @@ public class CSVReader {
 			int billingMethodNum = Integer.parseInt(line[5]);
 			//キーを請求先CにしてMapに追加
 			result.put(billingNum,
-					new Client(billingNum, name, closingDateStr, baseValue,isDoroijiCmpNum, billingMethodNum));
+					new Client(billingNum, name, closingDateStr, baseValue, isDoroijiCmpNum, billingMethodNum));
 		}
 		return result;
 	}
-	
+
 	//道路維持管理費一覧
-	public Map<Integer,int[]> createDoroijiSaleMap(String csvPath) throws IOException{
-		Map<Integer,int[]> result = new HashMap<>();
+	public Map<Integer, int[]> createDoroijiSaleMap(String csvPath) throws IOException {
+		Map<Integer, int[]> result = new HashMap<>();
 		Path path = Paths.get(csvPath);
 		List<String> lines = Files.readAllLines(path, Charset.forName("MS932"));
 		ClientsManager cm = Controller.getInstance().getClientsManager();
@@ -135,18 +135,17 @@ public class CSVReader {
 		int billingNum;
 		int doroijiSale;
 		int closingDateNum;
-		for(int i = 0; i < lines.size(); i++) {
+		for (int i = 0; i < lines.size(); i++) {
 			line = lines.get(i).split(",");
 			billingNum = Integer.parseInt(line[0]);
 			doroijiSale = Integer.parseInt(line[2]);
 			closingDateNum = Integer.parseInt(line[3]);
-			int[] arr = {doroijiSale,closingDateNum};
+			int[] arr = { doroijiSale, closingDateNum };
 			//請求先コードからClientインスタンスを取得してmapに詰める
 			result.put(billingNum, arr);
 		}
 		return result;
 	}
-	
 
 	public static String getCurrentInvoiceCsvName() {
 		return currentInvoiceCsvName;

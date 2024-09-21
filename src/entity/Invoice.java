@@ -18,7 +18,7 @@ public class Invoice {
 	private String cmpName;
 	//請求先C
 	private int billingNum;
-	
+
 	private ClosingDay closingDay;
 	//〆日 日付情報
 	private LocalDate closingDate;
@@ -76,7 +76,7 @@ public class Invoice {
 		int result = 0;
 		for (SaleContent sale : this.salesRow) {
 			if (sale.isDoroiji() == true) {
-				result = result -new BigDecimal(sale.getVol()).multiply(new BigDecimal(this.doroijiValue)).intValue();
+				result = result - new BigDecimal(sale.getVol()).multiply(new BigDecimal(this.doroijiValue)).intValue();
 			}
 		}
 		return result;
@@ -91,18 +91,18 @@ public class Invoice {
 		this.address = header[1];
 		this.cmpName = header[4];
 		this.billingNum = Integer.parseInt(header[5]);
-		
+
 		this.closingDateStr = header[7];
 		//日付文字列をLocalDateに変換
 		String dateStr = this.closingDateStr;
-		int year = Integer.parseInt(dateStr.substring(0,4));
-		int month = Integer.parseInt(dateStr.substring(7,9));
-		int day = Integer.parseInt(dateStr.substring(12,14));
+		int year = Integer.parseInt(dateStr.substring(0, 4));
+		int month = Integer.parseInt(dateStr.substring(7, 9));
+		int day = Integer.parseInt(dateStr.substring(12, 14));
 		this.closingDate = LocalDate.of(year, month, day);
-		
-		if(day > 25) {
+
+		if (day > 25) {
 			this.closingDay = ClosingDay.D_LAST;
-		}else {
+		} else {
 			this.closingDay = ClosingDay.getTypeByValue(String.valueOf(day));
 		}
 		this.billingMonth = Integer.parseInt(this.closingDateStr.substring(7, 9));
@@ -119,7 +119,7 @@ public class Invoice {
 		this.salesRow = new ArrayList<SaleContent>();
 		for (int i = 1; i < list.size(); i++) {
 			//スラッシュを含む＝日付なので売上行
-			if (list.get(i)[0].contains("/")) {
+			if (list.get(i).length != 0 && list.get(i)[0].contains("/")) {
 				SaleContent row = new SaleContent(list.get(i));
 				this.salesRow.add(row);
 			}
@@ -143,7 +143,7 @@ public class Invoice {
 
 		//道路維持管理費
 		ClientsManager clientsManager = Controller.getInstance().getClientsManager();
-		this.doroijiValue = clientsManager.getDoroijiValue(this.billingNum);		
+		this.doroijiValue = clientsManager.getDoroijiValue(this.billingNum);
 	}
 
 	public String getPostCode() {
@@ -181,14 +181,15 @@ public class Invoice {
 	public int getBillingNum() {
 		return billingNum;
 	}
-	
+
 	public ClosingDay getClosingDay() {
 		return this.closingDay;
 	}
-	
+
 	public LocalDate getClosingDate() {
 		return this.closingDate;
 	}
+
 	public String getClosingDateStr() {
 		return closingDateStr;
 	}
@@ -204,7 +205,7 @@ public class Invoice {
 	public int getCaryyOver() {
 		return caryyOver;
 	}
-	
+
 	public int getInitialSale() {
 		return this.initialSale;
 	}
